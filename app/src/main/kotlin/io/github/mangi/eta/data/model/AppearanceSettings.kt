@@ -10,9 +10,9 @@ const val DEFAULT_INTERFACE_SCALE = 1f
 data class AppearanceSettings(
     val themeMode: AppearanceThemeMode = AppearanceThemeMode.SYSTEM,
     val monetEnabled: Boolean = false,
-    val paletteStyle: AppearancePaletteStyle = AppearancePaletteStyle.TONAL_SPOT,
+    val paletteStyle: AppearancePaletteStyle = AppearancePaletteStyle.FRUIT_SALAD,
     val accentColor: AppearanceAccentColor = AppearanceAccentColor.SYSTEM,
-    val pureBlackEnabled: Boolean = false,
+    val pureBlackEnabled: Boolean = true,
     val blurEnabled: Boolean = true,
     val topBarBlurStyle: AppearanceTopBarBlurStyle = AppearanceTopBarBlurStyle.GAUSSIAN,
     val swipeDismissEnabled: Boolean = true,

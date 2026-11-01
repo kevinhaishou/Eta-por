@@ -88,7 +88,7 @@ internal object AgentRuntimeWire {
     const val MSG_RESUME = 17
     const val MSG_STEER = 18
 
-    private const val MODULE_PACKAGE = "io.github.mangi.eta"
+    private const val MODULE_PACKAGE = "io.github.mangi.eta.por"
     private const val SERVICE_CLASS = "io.github.mangi.eta.agent.runtime.AgentRuntimeService"
 
     private const val KEY_TYPE = "type"

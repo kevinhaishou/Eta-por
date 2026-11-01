@@ -33,9 +33,10 @@ android {
     namespace = "io.github.mangi.eta"
     compileSdk = 37
     ndkVersion = libs.versions.ndk.get()
+    buildToolsVersion = "37.0.0"
 
     defaultConfig {
-        applicationId = "io.github.mangi.eta"
+        applicationId = "io.github.mangi.eta.por"
         minSdk = 33
         targetSdk = 37
         // versionCode 规则：yyyyMMdd + 两位当日序号（01 起），发版时随 versionName 一起手动递增。
