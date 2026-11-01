@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.mangi.eta.ui.app.WallpaperBackground
 import io.github.mangi.eta.ui.layout.WidePageContent
 import io.github.mangi.eta.ui.layout.horizontalCutoutPadding
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
@@ -46,6 +47,9 @@ fun MiuixScaffoldPage(
         val backdrop = rememberTopBarBackdrop()
         val topBarColor = topBarContainerColor(backdrop)
 
+        // 本页不透明底板：壁纸或主题底色，挡住导航栈下层，半透明卡片只透本页壁纸。
+        Box(modifier = Modifier.fillMaxSize()) {
+        WallpaperBackground()
         Scaffold(
             containerColor = Color.Transparent,
             modifier = modifier.fillMaxSize(),
@@ -97,6 +101,7 @@ fun MiuixScaffoldPage(
             }
             overlay()
         }
+        }
     }
 }
 
@@ -121,6 +126,8 @@ fun MiuixScaffold(
         val backdrop = rememberTopBarBackdrop()
         val topBarColor = topBarContainerColor(backdrop)
 
+        Box(modifier = Modifier.fillMaxSize()) {
+        WallpaperBackground()
         Scaffold(
             containerColor = Color.Transparent,
             modifier = modifier.fillMaxSize(),
@@ -141,6 +148,7 @@ fun MiuixScaffold(
                     content(paddingValues, scrollBehavior, sidePadding)
                 }
             }
+        }
         }
     }
 }
