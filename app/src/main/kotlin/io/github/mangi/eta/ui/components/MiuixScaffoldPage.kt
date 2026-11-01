@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -120,8 +121,8 @@ fun MiuixScaffold(
         val backdrop = rememberTopBarBackdrop()
         val topBarColor = topBarContainerColor(backdrop)
 
-            containerColor = Color.Transparent,
         Scaffold(
+            containerColor = Color.Transparent,
             modifier = modifier.fillMaxSize(),
             topBar = {
                 TopBarBackdrop(backdrop) {
