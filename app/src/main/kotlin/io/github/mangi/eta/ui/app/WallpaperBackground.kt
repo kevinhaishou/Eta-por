@@ -9,13 +9,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.RenderEffect
-import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
 import java.io.File
 
 /**
@@ -38,14 +37,10 @@ fun WallpaperBackground(modifier: Modifier = Modifier) {
             bitmap = bmp,
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize().graphicsLayer {
-                if (appearance.wallpaperBlur > 0f) {
-                    renderEffect = RenderEffect.createBlurEffect(
-                        appearance.wallpaperBlur,
-                        appearance.wallpaperBlur,
-                        TileMode.Clamp,
-                    )
-                }
+            modifier = if (appearance.wallpaperBlur > 0f) {
+                Modifier.fillMaxSize().blur(appearance.wallpaperBlur.dp)
+            } else {
+                Modifier.fillMaxSize()
             },
         )
         if (appearance.wallpaperDim > 0f) {
