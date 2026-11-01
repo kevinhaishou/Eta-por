@@ -546,16 +546,6 @@ fun AgentAppRoot(
         LocalAppearanceSettings.current.swipeDismissEnabled
     }
     key(navigationResetKey) {
-        // 全局壁纸层：放在 NavDisplay 之外的最底层，所有路由共享同一张壁纸并固定不动。
-        // 之前只在 Home 的 AgentAppShell 里画，导致设置/外观等未包 RoutedShell 的页面透不到壁纸。
-        val wallpaperRoute = backStack.lastOrNull()
-        val wallpaperAllowed = wallpaperRoute !is AppRoute.Terminal &&
-            wallpaperRoute !is AppRoute.Browser &&
-            wallpaperRoute !is AppRoute.LinuxEnvironment &&
-            wallpaperRoute !is AppRoute.VirtualScreen &&
-            wallpaperRoute !is AppRoute.Workspace
-        Box(modifier = Modifier.fillMaxSize()) {
-        if (wallpaperAllowed) WallpaperBackground()
         NavDisplay(
             backStack = backStack,
             onBack = { popRoute() },
@@ -1183,7 +1173,6 @@ fun AgentAppRoot(
                     onBack = ::popRoute
                 )
             }
-        }
         }
     }
 
