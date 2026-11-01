@@ -24,6 +24,10 @@ import androidx.compose.ui.unit.dp
 import io.github.mangi.eta.R
 import io.github.mangi.eta.data.model.AppearanceAccentColor
 import io.github.mangi.eta.data.model.AppearancePaletteStyle
+import io.github.mangi.eta.data.model.MAX_WALLPAPER_DIM
+import io.github.mangi.eta.data.model.MIN_WALLPAPER_BLUR
+import io.github.mangi.eta.data.model.MAX_WALLPAPER_BLUR
+import io.github.mangi.eta.data.model.WallpaperScaleMode
 import io.github.mangi.eta.data.model.AppearanceSettings
 import io.github.mangi.eta.data.model.AppearanceThemeMode
 import io.github.mangi.eta.data.model.AppearanceTopBarBlurStyle
@@ -67,6 +71,8 @@ internal fun AppearanceSettingsScreen(onBack: () -> Unit) {
     }
     var showScaleDialog by remember { mutableStateOf(false) }
     var scaleInput by remember { mutableStateOf("") }
+    var dimDraft by remember(appearance.wallpaperDim) { mutableFloatStateOf(appearance.wallpaperDim) }
+    var blurDraft by remember(appearance.wallpaperBlur) { mutableFloatStateOf(appearance.wallpaperBlur) }
     val blurSupported = isRuntimeShaderSupported()
 
     fun update(transform: (AppearanceSettings) -> AppearanceSettings) {
@@ -333,6 +339,77 @@ internal fun AppearanceSettingsScreen(onBack: () -> Unit) {
                     },
                 )
                 if (appearance.wallpaperPath.isNotBlank()) {
+                    EtaPreferenceDivider(hasLeading = false)
+                    EtaArrowPreference(
+                        title = "壁纸压暗程度",
+                        summary = "压暗背景层，保证正文对比度",
+                        endActions = {
+                            Text(
+                                text = "${(dimDraft * 100f).roundToInt()}%",
+                                fontSize = MiuixTheme.textStyles.body2.fontSize,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantActions,
+                            )
+                        },
+                        bottomAction = {
+                            Slider(
+                                value = dimDraft.coerceIn(0f, MAX_WALLPAPER_DIM),
+                                onValueChange = { dimDraft = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                valueRange = 0f..MAX_WALLPAPER_DIM,
+                                onValueChangeFinished = { update { it.copy(wallpaperDim = dimDraft) } },
+                                showKeyPoints = true,
+                                keyPoints = listOf(0f, 0.25f, 0.5f, 0.75f),
+                                hapticEffect = SliderDefaults.SliderHapticEffect.Step,
+                            )
+                        },
+                    )
+                    EtaPreferenceDivider(hasLeading = false)
+                    EtaArrowPreference(
+                        title = "壁纸模糊",
+                        summary = "模糊背景，让内容更突出",
+                        endActions = {
+                            Text(
+                                text = "${blurDraft.roundToInt()}dp",
+                                fontSize = MiuixTheme.textStyles.body2.fontSize,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantActions,
+                            )
+                        },
+                        bottomAction = {
+                            Slider(
+                                value = blurDraft.coerceIn(MIN_WALLPAPER_BLUR, MAX_WALLPAPER_BLUR),
+                                onValueChange = { blurDraft = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                valueRange = MIN_WALLPAPER_BLUR..MAX_WALLPAPER_BLUR,
+                                onValueChangeFinished = { update { it.copy(wallpaperBlur = blurDraft) } },
+                                showKeyPoints = true,
+                                keyPoints = listOf(0f, 8f, 16f, 24f),
+                                hapticEffect = SliderDefaults.SliderHapticEffect.Step,
+                            )
+                        },
+                    )
+                    EtaPreferenceDivider(hasLeading = false)
+                    EtaArrowPreference(
+                        title = "壁纸缩放方式",
+                        summary = appearance.wallpaperScaleMode.label,
+                        endActions = {
+                            Text(
+                                text = appearance.wallpaperScaleMode.label,
+                                fontSize = MiuixTheme.textStyles.body2.fontSize,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantActions,
+                            )
+                        },
+                        onClick = {
+                            update {
+                                it.copy(
+                                    wallpaperScaleMode = if (it.wallpaperScaleMode == WallpaperScaleMode.CROP) {
+                                        WallpaperScaleMode.FIT
+                                    } else {
+                                        WallpaperScaleMode.CROP
+                                    },
+                                )
+                            }
+                        },
+                    )
                     EtaPreferenceDivider(hasLeading = false)
                     EtaArrowPreference(
                         title = "移除壁纸",

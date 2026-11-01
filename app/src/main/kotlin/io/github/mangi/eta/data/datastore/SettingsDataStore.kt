@@ -16,6 +16,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import io.github.mangi.eta.data.model.AppearanceAccentColor
 import io.github.mangi.eta.data.model.AppearancePaletteStyle
 import io.github.mangi.eta.data.model.AppearanceSettings
+import io.github.mangi.eta.data.model.WallpaperScaleMode
 import io.github.mangi.eta.data.model.AppearanceThemeMode
 import io.github.mangi.eta.data.model.AppearanceTopBarBlurStyle
 import io.github.mangi.eta.data.model.SpeechSettings
@@ -154,6 +155,7 @@ internal object SettingsDataStore {
     private val APPEARANCE_WALLPAPER_PATH = stringPreferencesKey("appearance_wallpaper_path")
     private val APPEARANCE_WALLPAPER_DIM = floatPreferencesKey("appearance_wallpaper_dim")
     private val APPEARANCE_WALLPAPER_BLUR = floatPreferencesKey("appearance_wallpaper_blur")
+    private val APPEARANCE_WALLPAPER_SCALE = stringPreferencesKey("appearance_wallpaper_scale")
     private val APPEARANCE_AVATAR_ENABLED = booleanPreferencesKey("appearance_avatar_enabled")
     private val APPEARANCE_AVATAR_MINE_PATH = stringPreferencesKey("appearance_avatar_mine_path")
     private val APPEARANCE_AVATAR_AI_PATH = stringPreferencesKey("appearance_avatar_ai_path")
@@ -493,6 +495,9 @@ internal object SettingsDataStore {
             wallpaperPath = this[APPEARANCE_WALLPAPER_PATH].orEmpty(),
             wallpaperDim = this[APPEARANCE_WALLPAPER_DIM] ?: 0f,
             wallpaperBlur = this[APPEARANCE_WALLPAPER_BLUR] ?: 0f,
+            wallpaperScaleMode = runCatching {
+                WallpaperScaleMode.valueOf(this[APPEARANCE_WALLPAPER_SCALE].orEmpty())
+            }.getOrDefault(WallpaperScaleMode.CROP),
             avatarEnabled = this[APPEARANCE_AVATAR_ENABLED] ?: false,
             avatarMinePath = this[APPEARANCE_AVATAR_MINE_PATH].orEmpty(),
             avatarAiPath = this[APPEARANCE_AVATAR_AI_PATH].orEmpty(),
@@ -514,6 +519,7 @@ internal object SettingsDataStore {
         this[APPEARANCE_WALLPAPER_PATH] = settings.wallpaperPath
         this[APPEARANCE_WALLPAPER_DIM] = settings.wallpaperDim
         this[APPEARANCE_WALLPAPER_BLUR] = settings.wallpaperBlur
+        this[APPEARANCE_WALLPAPER_SCALE] = settings.wallpaperScaleMode.name
         this[APPEARANCE_AVATAR_ENABLED] = settings.avatarEnabled
         this[APPEARANCE_AVATAR_MINE_PATH] = settings.avatarMinePath
         this[APPEARANCE_AVATAR_AI_PATH] = settings.avatarAiPath

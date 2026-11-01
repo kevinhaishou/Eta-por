@@ -28,6 +28,7 @@ data class AppearanceSettings(
     val wallpaperPath: String = "",
     val wallpaperDim: Float = 0f,
     val wallpaperBlur: Float = 0f,
+    val wallpaperScaleMode: WallpaperScaleMode = WallpaperScaleMode.CROP,
     // ---- 图片功能：聊天双方头像 ----
     val avatarEnabled: Boolean = false,
     val avatarMinePath: String = "",
@@ -38,6 +39,15 @@ data class AppearanceSettings(
         wallpaperDim = normalizeWallpaperDim(wallpaperDim),
         wallpaperBlur = normalizeWallpaperBlur(wallpaperBlur),
     )
+}
+
+@Serializable
+enum class WallpaperScaleMode(val label: String) {
+    /** 铺满屏幕：按短边放大铺满并裁剪溢出部分。 */
+    CROP("铺满屏幕"),
+
+    /** 适应屏幕：完整显示整张图，四周可能留边。 */
+    FIT("适应屏幕"),
 }
 
 @Serializable
