@@ -72,6 +72,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
@@ -399,13 +400,23 @@ private fun UserMessageBubble(
     // 默认取微信观感：浅色下亮绿、深色下稍暗的绿；可在「编辑气泡样式」里改。
     val isDarkScheme = MiuixTheme.colorScheme.background.luminance() < 0.5f
     val defaultUserBubbleColor = if (isDarkScheme) Color(0xFF3EB575) else Color(0xFF95EC69)
-    val bubbleUserContainer = (
-        if (appearance.bubbleUserColor != 0L) {
-            Color(appearance.bubbleUserColor)
-        } else {
-            defaultUserBubbleColor
-        }
-        ).copy(alpha = appearance.bubbleUserAlpha)
+    // 不透明底色用于判断明暗（alpha 不应参与对比判定），背景再单独套透明度。
+    val bubbleUserBase = if (appearance.bubbleUserColor != 0L) {
+        Color(appearance.bubbleUserColor)
+    } else {
+        defaultUserBubbleColor
+    }
+    val bubbleUserContainer = bubbleUserBase.copy(alpha = appearance.bubbleUserAlpha)
+    // 微信式自动对比：底色亮用近黑字，底色暗用白字，任何自定义气泡色都不发飘。
+    val bubbleUserContentColor = if (bubbleUserBase.luminance() > 0.55f) {
+        Color(0xCC000000)
+    } else {
+        Color(0xFFF2F2F2)
+    }
+    // 气泡上限跟随屏宽（约 75%），宽屏/折叠屏不再被固定 280dp 限窄而频繁折行。
+    val maxBubbleWidth = with(LocalConfiguration.current) {
+        (screenWidthDp * 0.75f).dp
+    }
     val overlayBubbleColor = if (MiuixTheme.colorScheme.background.luminance() < 0.5f) {
         Color(0xFF37393D)
     } else {
@@ -465,7 +476,7 @@ private fun UserMessageBubble(
         ) {
             Column(
                 modifier = Modifier
-                    .widthIn(max = 280.dp)
+                    .widthIn(max = maxBubbleWidth)
                     .then(
                         if (assistantOverlay) {
                             Modifier.background(overlayBubbleColor, RoundedCornerShape(10.dp))
@@ -502,7 +513,7 @@ private fun UserMessageBubble(
                         modifier = Modifier
                             .padding(bottom = 8.dp)
                             .background(
-                                color = MiuixTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                color = bubbleUserContentColor.copy(alpha = 0.14f),
                                 shape = RoundedCornerShape(9.dp),
                             )
                             .padding(horizontal = 8.dp, vertical = 3.dp),
@@ -511,12 +522,12 @@ private fun UserMessageBubble(
                             text = "/" + skill.skillId,
                             style = MiuixTheme.textStyles.footnote1,
                             fontWeight = FontWeight.Medium,
-                            color = MiuixTheme.colorScheme.primary,
+                            color = bubbleUserContentColor,
                         )
                         Text(
                             text = " · " + stringResource(R.string.agent_command_skill_tag),
                             style = MiuixTheme.textStyles.footnote1,
-                            color = MiuixTheme.colorScheme.primary.copy(alpha = 0.72f),
+                            color = bubbleUserContentColor.copy(alpha = 0.72f),
                         )
                     }
                 }
@@ -562,7 +573,7 @@ private fun UserMessageBubble(
                         Text(
                             text = visiblePrompt.request,
                             style = MiuixTheme.textStyles.body1,
-                            color = MiuixTheme.colorScheme.onSurface,
+                            color = bubbleUserContentColor,
                         )
                     }
                 }
@@ -570,7 +581,7 @@ private fun UserMessageBubble(
                     Text(
                         text = stringResource(R.string.ui_edited_c36776),
                         style = MiuixTheme.textStyles.body2,
-                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        color = bubbleUserContentColor.copy(alpha = 0.65f),
                         modifier = Modifier.padding(top = 4.dp),
                     )
                 }
