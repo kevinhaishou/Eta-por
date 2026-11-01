@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import io.github.mangi.eta.data.model.WallpaperScaleMode
 import java.io.File
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -52,7 +53,10 @@ fun WallpaperBackground(modifier: Modifier = Modifier) {
                 Image(
                     bitmap = bmp,
                     contentDescription = null,
-                    contentScale = ContentScale.Crop,
+                    contentScale = when (appearance.wallpaperScaleMode) {
+                        WallpaperScaleMode.CROP -> ContentScale.Crop
+                        WallpaperScaleMode.FIT -> ContentScale.Fit
+                    },
                     modifier = if (appearance.wallpaperBlur > 0f) {
                         Modifier.fillMaxSize().blur(appearance.wallpaperBlur.dp)
                     } else {
