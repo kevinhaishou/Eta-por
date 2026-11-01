@@ -166,6 +166,8 @@ internal object SettingsDataStore {
     private val APPEARANCE_BUBBLE_AI_COLOR = longPreferencesKey("appearance_bubble_ai_color")
     private val APPEARANCE_BUBBLE_CORNER = floatPreferencesKey("appearance_bubble_corner")
     private val APPEARANCE_BUBBLE_PADDING = floatPreferencesKey("appearance_bubble_padding")
+    private val APPEARANCE_BUBBLE_USER_ALPHA = floatPreferencesKey("appearance_bubble_user_alpha")
+    private val APPEARANCE_BUBBLE_AI_ALPHA = floatPreferencesKey("appearance_bubble_ai_alpha")
     private const val SELECTED_MODEL_BY_PROVIDER_PREFIX = "selected_model_id_by_provider."
 
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = STORE_NAME)
@@ -515,6 +517,8 @@ internal object SettingsDataStore {
             bubbleAiColor = this[APPEARANCE_BUBBLE_AI_COLOR] ?: 0L,
             bubbleCornerRadius = this[APPEARANCE_BUBBLE_CORNER] ?: 20f,
             bubblePadding = this[APPEARANCE_BUBBLE_PADDING] ?: 12f,
+            bubbleUserAlpha = this[APPEARANCE_BUBBLE_USER_ALPHA] ?: 1f,
+            bubbleAiAlpha = this[APPEARANCE_BUBBLE_AI_ALPHA] ?: 1f,
         ).normalized(),
     )
 
@@ -544,5 +548,7 @@ internal object SettingsDataStore {
         this[APPEARANCE_BUBBLE_AI_COLOR] = settings.bubbleAiColor
         this[APPEARANCE_BUBBLE_CORNER] = settings.bubbleCornerRadius
         this[APPEARANCE_BUBBLE_PADDING] = settings.bubblePadding
+        this[APPEARANCE_BUBBLE_USER_ALPHA] = settings.bubbleUserAlpha
+        this[APPEARANCE_BUBBLE_AI_ALPHA] = settings.bubbleAiAlpha
     }
 }

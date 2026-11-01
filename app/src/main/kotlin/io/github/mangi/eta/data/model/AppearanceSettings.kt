@@ -48,12 +48,18 @@ data class AppearanceSettings(
     val bubbleCornerRadius: Float = 20f,
     /** 气泡内边距(dp)。 */
     val bubblePadding: Float = 12f,
+    /** 用户气泡不透明度。 */
+    val bubbleUserAlpha: Float = 1f,
+    /** AI 气泡不透明度。 */
+    val bubbleAiAlpha: Float = 1f,
 ) {
     fun normalized(): AppearanceSettings = copy(
         interfaceScale = normalizeInterfaceScale(interfaceScale),
         wallpaperDim = normalizeWallpaperDim(wallpaperDim),
         wallpaperBlur = normalizeWallpaperBlur(wallpaperBlur),
         topBarAlpha = topBarAlpha.coerceIn(0.15f, 1f),
+        bubbleUserAlpha = bubbleUserAlpha.coerceIn(0.2f, 1f),
+        bubbleAiAlpha = bubbleAiAlpha.coerceIn(0.2f, 1f),
     )
 }
 
