@@ -224,8 +224,16 @@ internal fun ChatMessageItem(
     onForkMessage: ((String) -> Unit)? = null,
 ) {
     val appearance = LocalAppearanceSettings.current
-    val avatarMinePath = if (appearance.avatarEnabled) appearance.avatarMinePath else ""
-    val avatarAiPath = if (appearance.avatarEnabled) appearance.avatarAiPath else ""
+    val avatarMinePath = if (appearance.avatarMineEnabled) {
+        appearance.avatarMinePath
+    } else {
+        ""
+    }
+    val avatarAiPath = if (appearance.avatarAiEnabled) {
+        appearance.avatarAiPath
+    } else {
+        ""
+    }
     when (message) {
         is UserMessageUi -> Row(
             modifier = modifier.fillMaxWidth(),
@@ -267,7 +275,18 @@ internal fun ChatMessageItem(
             onEdit = { onEditMessage(message.id) },
             onSelectCandidate = { onSelectReplyCandidate(message.id, it) },
             onFork = onForkMessage?.let { callback -> { callback(message.id) } },
-            modifier = Modifier.weight(1f, fill = false),
+            modifier = Modifier
+                .weight(1f, fill = false)
+                .then(
+                    if (appearance.bubbleAiColor != 0L) {
+                        Modifier
+                            .clip(RoundedCornerShape(appearance.bubbleCornerRadius.dp))
+                            .background(Color(appearance.bubbleAiColor))
+                            .padding(appearance.bubblePadding.dp)
+                    } else {
+                        Modifier
+                    },
+                ),
             )
         }
         is SystemNoticeMessageUi -> if (
@@ -370,6 +389,13 @@ private fun UserMessageBubble(
     val skillCommand = remember(message.content) {
         AgentSkillCommandPromptCodec.parseHeader(message.content)
     }
+    val appearance = LocalAppearanceSettings.current
+    val bubbleRadius = appearance.bubbleCornerRadius
+    val bubbleUserContainer = if (appearance.bubbleUserColor != 0L) {
+        Color(appearance.bubbleUserColor)
+    } else {
+        MiuixTheme.colorScheme.surfaceContainerHigh
+    }
     val overlayBubbleColor = if (MiuixTheme.colorScheme.background.luminance() < 0.5f) {
         Color(0xFF37393D)
     } else {
@@ -435,12 +461,12 @@ private fun UserMessageBubble(
                             Modifier.background(overlayBubbleColor, RoundedCornerShape(10.dp))
                         } else {
                             Modifier.squircleSurface(
-                                color = MiuixTheme.colorScheme.surfaceContainerHigh,
-                                topStart = 20.dp,
-                                topEnd = 20.dp,
+                                color = bubbleUserContainer,
+                                topStart = bubbleRadius.dp,
+                                topEnd = bubbleRadius.dp,
                                 // 描边只支持统一圆角，编辑态收起气泡尾角，让描边与填充贴合。
-                                bottomEnd = if (isEditing) 20.dp else 6.dp,
-                                bottomStart = 20.dp,
+                                bottomEnd = if (isEditing) bubbleRadius.dp else minOf(6f, bubbleRadius).dp,
+                                bottomStart = bubbleRadius.dp,
                             )
                         }
                     )
@@ -456,8 +482,8 @@ private fun UserMessageBubble(
                         }
                     )
                     .padding(
-                        horizontal = if (assistantOverlay) 12.dp else 16.dp,
-                        vertical = if (assistantOverlay) 8.dp else 12.dp,
+                        horizontal = if (assistantOverlay) 12.dp else (appearance.bubblePadding + 4f).dp,
+                        vertical = if (assistantOverlay) 8.dp else appearance.bubblePadding.dp,
                     ),
             ) {
                 skillCommand?.let { skill ->
