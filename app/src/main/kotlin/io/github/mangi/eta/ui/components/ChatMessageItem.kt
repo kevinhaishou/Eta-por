@@ -84,6 +84,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.mangi.eta.R
@@ -97,6 +98,7 @@ import io.github.mangi.eta.ui.markdown.StreamingMarkdown
 import io.github.mangi.eta.ui.markdown.StreamingMarkdownState
 import io.github.mangi.eta.ui.markdown.THINKING_LINE_HEIGHT_SP
 import io.github.mangi.eta.ui.model.AgentChatMessageUi
+import io.github.mangi.eta.ui.app.LocalAppearanceSettings
 import io.github.mangi.eta.ui.model.AgentMessageUi
 import io.github.mangi.eta.ui.model.RunTraceMessageUi
 import io.github.mangi.eta.ui.model.SuggestionChipsMessageUi
@@ -221,18 +223,38 @@ internal fun ChatMessageItem(
     /** 非空时才在卡片末尾出现「新建分支」；工作过程里的中间条目传 null。 */
     onForkMessage: ((String) -> Unit)? = null,
 ) {
+    val appearance = LocalAppearanceSettings.current
+    val avatarMinePath = if (appearance.avatarEnabled) appearance.avatarMinePath else ""
+    val avatarAiPath = if (appearance.avatarEnabled) appearance.avatarAiPath else ""
     when (message) {
-        is UserMessageUi -> UserMessageBubble(
-            message = message,
-            assistantOverlay = assistantOverlay,
-            actionsEnabled = messageActionsEnabled,
-            isEditing = isEditing,
-            onEdit = { onEditMessage(message.id) },
-            onDelete = { onDeleteMessage(message.id) },
-            onFork = onForkMessage?.let { callback -> { callback(message.id) } },
-            modifier = modifier,
-        )
-        is AgentMessageUi -> AgentMessageBlock(
+        is UserMessageUi -> Row(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.Top,
+        ) {
+            UserMessageBubble(
+                message = message,
+                assistantOverlay = assistantOverlay,
+                actionsEnabled = messageActionsEnabled,
+                isEditing = isEditing,
+                onEdit = { onEditMessage(message.id) },
+                onDelete = { onDeleteMessage(message.id) },
+                onFork = onForkMessage?.let { callback -> { callback(message.id) } },
+                modifier = Modifier.weight(1f, fill = false),
+            )
+            if (avatarMinePath.isNotBlank()) {
+                MessageAvatar(path = avatarMinePath, modifier = Modifier.padding(start = 6.dp))
+            }
+        }
+        is AgentMessageUi -> Row(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.Top,
+        ) {
+            if (avatarAiPath.isNotBlank()) {
+                MessageAvatar(path = avatarAiPath, modifier = Modifier.padding(end = 6.dp))
+            }
+            AgentMessageBlock(
             message = message,
             allowSpeech = true,
             assistantOverlay = assistantOverlay,
@@ -245,8 +267,9 @@ internal fun ChatMessageItem(
             onEdit = { onEditMessage(message.id) },
             onSelectCandidate = { onSelectReplyCandidate(message.id, it) },
             onFork = onForkMessage?.let { callback -> { callback(message.id) } },
-            modifier = modifier,
-        )
+            modifier = Modifier.weight(1f, fill = false),
+            )
+        }
         is SystemNoticeMessageUi -> if (
             message.code == SystemNoticeCode.ContextCompaction ||
             message.code == SystemNoticeCode.CommandNote
@@ -1368,4 +1391,25 @@ private fun SuggestionChipsRow(
             }
         }
     }
+}
+
+
+/** 聊天头像：圆形裁剪的小图，读取 app 私有目录里的图片文件。 */
+@Composable
+private fun MessageAvatar(path: String, modifier: Modifier = Modifier) {
+    val bitmap by androidx.compose.runtime.produceState<ImageBitmap?>(
+        initialValue = null,
+        path,
+    ) {
+        value = runCatching {
+            android.graphics.BitmapFactory.decodeFile(path)?.asImageBitmap()
+        }.getOrNull()
+    }
+    val bmp = bitmap ?: return
+    Image(
+        bitmap = bmp,
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier = modifier.size(30.dp).clip(CircleShape),
+    )
 }
