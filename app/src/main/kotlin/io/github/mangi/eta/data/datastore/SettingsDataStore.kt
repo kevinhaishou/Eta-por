@@ -159,6 +159,12 @@ internal object SettingsDataStore {
     private val APPEARANCE_AVATAR_ENABLED = booleanPreferencesKey("appearance_avatar_enabled")
     private val APPEARANCE_AVATAR_MINE_PATH = stringPreferencesKey("appearance_avatar_mine_path")
     private val APPEARANCE_AVATAR_AI_PATH = stringPreferencesKey("appearance_avatar_ai_path")
+    private val APPEARANCE_AVATAR_MINE_ENABLED = booleanPreferencesKey("appearance_avatar_mine_enabled")
+    private val APPEARANCE_AVATAR_AI_ENABLED = booleanPreferencesKey("appearance_avatar_ai_enabled")
+    private val APPEARANCE_BUBBLE_USER_COLOR = longPreferencesKey("appearance_bubble_user_color")
+    private val APPEARANCE_BUBBLE_AI_COLOR = longPreferencesKey("appearance_bubble_ai_color")
+    private val APPEARANCE_BUBBLE_CORNER = floatPreferencesKey("appearance_bubble_corner")
+    private val APPEARANCE_BUBBLE_PADDING = floatPreferencesKey("appearance_bubble_padding")
     private const val SELECTED_MODEL_BY_PROVIDER_PREFIX = "selected_model_id_by_provider."
 
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = STORE_NAME)
@@ -501,6 +507,12 @@ internal object SettingsDataStore {
             avatarEnabled = this[APPEARANCE_AVATAR_ENABLED] ?: false,
             avatarMinePath = this[APPEARANCE_AVATAR_MINE_PATH].orEmpty(),
             avatarAiPath = this[APPEARANCE_AVATAR_AI_PATH].orEmpty(),
+            avatarMineEnabled = this[APPEARANCE_AVATAR_MINE_ENABLED] ?: true,
+            avatarAiEnabled = this[APPEARANCE_AVATAR_AI_ENABLED] ?: true,
+            bubbleUserColor = this[APPEARANCE_BUBBLE_USER_COLOR] ?: 0L,
+            bubbleAiColor = this[APPEARANCE_BUBBLE_AI_COLOR] ?: 0L,
+            bubbleCornerRadius = this[APPEARANCE_BUBBLE_CORNER] ?: 20f,
+            bubblePadding = this[APPEARANCE_BUBBLE_PADDING] ?: 12f,
         ).normalized(),
     )
 
@@ -523,5 +535,11 @@ internal object SettingsDataStore {
         this[APPEARANCE_AVATAR_ENABLED] = settings.avatarEnabled
         this[APPEARANCE_AVATAR_MINE_PATH] = settings.avatarMinePath
         this[APPEARANCE_AVATAR_AI_PATH] = settings.avatarAiPath
+        this[APPEARANCE_AVATAR_MINE_ENABLED] = settings.avatarMineEnabled
+        this[APPEARANCE_AVATAR_AI_ENABLED] = settings.avatarAiEnabled
+        this[APPEARANCE_BUBBLE_USER_COLOR] = settings.bubbleUserColor
+        this[APPEARANCE_BUBBLE_AI_COLOR] = settings.bubbleAiColor
+        this[APPEARANCE_BUBBLE_CORNER] = settings.bubbleCornerRadius
+        this[APPEARANCE_BUBBLE_PADDING] = settings.bubblePadding
     }
 }
