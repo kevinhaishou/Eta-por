@@ -281,7 +281,10 @@ internal fun ChatMessageItem(
                     if (appearance.bubbleAiColor != 0L) {
                         Modifier
                             .clip(RoundedCornerShape(appearance.bubbleCornerRadius.dp))
-                            .background(Color(appearance.bubbleAiColor))
+                            .background(
+                                Color(appearance.bubbleAiColor)
+                                    .copy(alpha = appearance.bubbleAiAlpha),
+                            )
                             .padding(appearance.bubblePadding.dp)
                     } else {
                         Modifier
@@ -391,11 +394,13 @@ private fun UserMessageBubble(
     }
     val appearance = LocalAppearanceSettings.current
     val bubbleRadius = appearance.bubbleCornerRadius
-    val bubbleUserContainer = if (appearance.bubbleUserColor != 0L) {
-        Color(appearance.bubbleUserColor)
-    } else {
-        MiuixTheme.colorScheme.surfaceContainerHigh
-    }
+    val bubbleUserContainer = (
+        if (appearance.bubbleUserColor != 0L) {
+            Color(appearance.bubbleUserColor)
+        } else {
+            MiuixTheme.colorScheme.surfaceContainerHigh
+        }
+        ).copy(alpha = appearance.bubbleUserAlpha)
     val overlayBubbleColor = if (MiuixTheme.colorScheme.background.luminance() < 0.5f) {
         Color(0xFF37393D)
     } else {
