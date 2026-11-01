@@ -25,8 +25,11 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 internal fun rememberTopBarBackdrop(): LayerBackdrop? {
     if (!LocalBlurEnabled.current || !isRuntimeShaderSupported()) return null
     val surfaceColor = MiuixTheme.colorScheme.surface
+    // 毛玻璃底必须跟随顶栏透明度：这里若填不透明色，无论 blend alpha 调到多低，
+    // 模糊采样到的都是那块实色，表现就是「透明度调到 15% 顶栏仍然是黑的」。
+    val topBarAlpha = LocalAppearanceSettings.current.topBarAlpha
     return rememberLayerBackdrop {
-        drawRect(surfaceColor)
+        drawRect(surfaceColor.copy(alpha = topBarAlpha))
         drawContent()
     }
 }
