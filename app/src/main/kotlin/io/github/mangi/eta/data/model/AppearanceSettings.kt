@@ -47,9 +47,9 @@ data class AppearanceSettings(
     /** AI 气泡底色 ARGB；0 表示跟随主题。 */
     val bubbleAiColor: Long = 0L,
     /** 气泡圆角(dp)。 */
-    val bubbleCornerRadius: Float = 20f,
+    val bubbleCornerRadius: Float = 6f,
     /** 气泡内边距(dp)。 */
-    val bubblePadding: Float = 10f,
+    val bubblePadding: Float = 8f,
     /** 用户气泡不透明度。 */
     val bubbleUserAlpha: Float = 1f,
     /** AI 气泡不透明度。 */
