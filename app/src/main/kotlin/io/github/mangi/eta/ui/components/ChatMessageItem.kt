@@ -460,7 +460,7 @@ private fun UserMessageBubble(
         ) {
             Column(
                 modifier = Modifier
-                    .widthIn(max = 320.dp)
+                    .widthIn(max = 280.dp)
                     .then(
                         if (assistantOverlay) {
                             Modifier.background(overlayBubbleColor, RoundedCornerShape(10.dp))
@@ -487,7 +487,7 @@ private fun UserMessageBubble(
                         }
                     )
                     .padding(
-                        horizontal = if (assistantOverlay) 12.dp else (appearance.bubblePadding + 4f).dp,
+                        horizontal = if (assistantOverlay) 12.dp else (appearance.bubblePadding + 2f).dp,
                         vertical = if (assistantOverlay) 8.dp else appearance.bubblePadding.dp,
                     ),
             ) {
