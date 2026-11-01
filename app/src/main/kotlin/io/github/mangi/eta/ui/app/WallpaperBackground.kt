@@ -1,8 +1,6 @@
 package io.github.mangi.eta.ui.app
 
 import android.graphics.BitmapFactory
-import android.graphics.RenderEffect
-import android.graphics.Shader
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -13,6 +11,8 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.RenderEffect
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -43,7 +43,7 @@ fun WallpaperBackground(modifier: Modifier = Modifier) {
                     renderEffect = RenderEffect.createBlurEffect(
                         appearance.wallpaperBlur,
                         appearance.wallpaperBlur,
-                        Shader.TileMode.CLAMP,
+                        TileMode.Clamp,
                     )
                 }
             },
