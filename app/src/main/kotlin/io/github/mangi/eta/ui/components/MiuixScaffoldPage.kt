@@ -46,6 +46,7 @@ fun MiuixScaffoldPage(
         val topBarColor = topBarContainerColor(backdrop)
 
         Scaffold(
+            containerColor = Color.Transparent,
             modifier = modifier.fillMaxSize(),
             topBar = {
                 TopBarBackdrop(backdrop) {
@@ -119,6 +120,7 @@ fun MiuixScaffold(
         val backdrop = rememberTopBarBackdrop()
         val topBarColor = topBarContainerColor(backdrop)
 
+            containerColor = Color.Transparent,
         Scaffold(
             modifier = modifier.fillMaxSize(),
             topBar = {
