@@ -210,7 +210,7 @@ internal fun AgentAppShell(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        WallpaperBackground()
+        // 壁纸已提升为 AgentAppRoot 的全局底层，这里不再重复绘制。
         if (conversationPaneState != null && currentRoute is AppRoute.Home) {
             ConversationSidePaneScaffold(
                 state = conversationPaneState,
