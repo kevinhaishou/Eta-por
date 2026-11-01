@@ -278,17 +278,19 @@ internal fun ChatMessageItem(
             modifier = Modifier
                 .weight(1f, fill = false)
                 .then(
-                    if (appearance.bubbleAiColor != 0L) {
-                        Modifier
-                            .clip(RoundedCornerShape(appearance.bubbleCornerRadius.dp))
-                            .background(
-                                Color(appearance.bubbleAiColor)
-                                    .copy(alpha = appearance.bubbleAiAlpha),
-                            )
-                            .padding(appearance.bubblePadding.dp)
-                    } else {
-                        Modifier
-                    },
+                    // AI 气泡始终有底色（默认深灰），贴近微信的对话观感。
+                    Modifier
+                        .clip(RoundedCornerShape(appearance.bubbleCornerRadius.dp))
+                        .background(
+                            (
+                                if (appearance.bubbleAiColor != 0L) {
+                                    Color(appearance.bubbleAiColor)
+                                } else {
+                                    MiuixTheme.colorScheme.surfaceContainerHigh
+                                }
+                                ).copy(alpha = appearance.bubbleAiAlpha),
+                        )
+                        .padding(appearance.bubblePadding.dp),
                 ),
             )
         }
@@ -394,11 +396,14 @@ private fun UserMessageBubble(
     }
     val appearance = LocalAppearanceSettings.current
     val bubbleRadius = appearance.bubbleCornerRadius
+    // 默认取微信观感：浅色下亮绿、深色下稍暗的绿；可在「编辑气泡样式」里改。
+    val isDarkScheme = MiuixTheme.colorScheme.background.luminance() < 0.5f
+    val defaultUserBubbleColor = if (isDarkScheme) Color(0xFF3EB575) else Color(0xFF95EC69)
     val bubbleUserContainer = (
         if (appearance.bubbleUserColor != 0L) {
             Color(appearance.bubbleUserColor)
         } else {
-            MiuixTheme.colorScheme.surfaceContainerHigh
+            defaultUserBubbleColor
         }
         ).copy(alpha = appearance.bubbleUserAlpha)
     val overlayBubbleColor = if (MiuixTheme.colorScheme.background.luminance() < 0.5f) {
