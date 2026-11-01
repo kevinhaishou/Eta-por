@@ -33,6 +33,19 @@ data class AppearanceSettings(
     val avatarEnabled: Boolean = false,
     val avatarMinePath: String = "",
     val avatarAiPath: String = "",
+    /** 我的头像独立开关（总开关关闭时不生效）。 */
+    val avatarMineEnabled: Boolean = true,
+    /** AI 头像独立开关（总开关关闭时不生效）。 */
+    val avatarAiEnabled: Boolean = true,
+    // ---- 图片功能：聊天气泡样式 ----
+    /** 用户气泡底色 ARGB；0 表示跟随主题。 */
+    val bubbleUserColor: Long = 0L,
+    /** AI 气泡底色 ARGB；0 表示跟随主题。 */
+    val bubbleAiColor: Long = 0L,
+    /** 气泡圆角(dp)。 */
+    val bubbleCornerRadius: Float = 20f,
+    /** 气泡内边距(dp)。 */
+    val bubblePadding: Float = 12f,
 ) {
     fun normalized(): AppearanceSettings = copy(
         interfaceScale = normalizeInterfaceScale(interfaceScale),
