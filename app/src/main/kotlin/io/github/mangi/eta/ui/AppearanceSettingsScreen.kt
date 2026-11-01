@@ -80,6 +80,7 @@ internal fun AppearanceSettingsScreen(onBack: () -> Unit) {
     var scaleInput by remember { mutableStateOf("") }
     var dimDraft by remember(appearance.wallpaperDim) { mutableFloatStateOf(appearance.wallpaperDim) }
     var showBubbleDialog by remember { mutableStateOf(false) }
+    var topBarAlphaDraft by remember(appearance.topBarAlpha) { mutableFloatStateOf(appearance.topBarAlpha) }
     var bubbleCornerDraft by remember(appearance.bubbleCornerRadius) {
         mutableFloatStateOf(appearance.bubbleCornerRadius)
     }
@@ -274,6 +275,32 @@ internal fun AppearanceSettingsScreen(onBack: () -> Unit) {
                                 blurStyles.getOrNull(index)?.let { style ->
                                     update { current -> current.copy(topBarBlurStyle = style) }
                                 }
+                            },
+                        )
+                        EtaPreferenceDivider(hasLeading = false)
+                        EtaArrowPreference(
+                            title = "顶栏透明度",
+                            summary = "调低可让顶栏更透出背景",
+                            endActions = {
+                                Text(
+                                    text = "${(topBarAlphaDraft * 100f).roundToInt()}%",
+                                    fontSize = MiuixTheme.textStyles.body2.fontSize,
+                                    color = MiuixTheme.colorScheme.onSurfaceVariantActions,
+                                )
+                            },
+                            bottomAction = {
+                                Slider(
+                                    value = topBarAlphaDraft.coerceIn(0.15f, 1f),
+                                    onValueChange = { topBarAlphaDraft = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    valueRange = 0.15f..1f,
+                                    onValueChangeFinished = {
+                                        update { it.copy(topBarAlpha = topBarAlphaDraft) }
+                                    },
+                                    showKeyPoints = true,
+                                    keyPoints = listOf(0.15f, 0.4f, 0.7f, 1f),
+                                    hapticEffect = SliderDefaults.SliderHapticEffect.Step,
+                                )
                             },
                         )
                     }

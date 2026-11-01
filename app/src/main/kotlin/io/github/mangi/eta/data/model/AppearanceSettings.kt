@@ -20,6 +20,8 @@ data class AppearanceSettings(
     val pureBlackEnabled: Boolean = true,
     val blurEnabled: Boolean = true,
     val topBarBlurStyle: AppearanceTopBarBlurStyle = AppearanceTopBarBlurStyle.GAUSSIAN,
+    /** 顶栏底色不透明度：1=实色，越小越透出背景。 */
+    val topBarAlpha: Float = 0.8f,
     val swipeDismissEnabled: Boolean = true,
     val predictiveBackEnabled: Boolean = true,
     val interfaceScale: Float = DEFAULT_INTERFACE_SCALE,
@@ -51,6 +53,7 @@ data class AppearanceSettings(
         interfaceScale = normalizeInterfaceScale(interfaceScale),
         wallpaperDim = normalizeWallpaperDim(wallpaperDim),
         wallpaperBlur = normalizeWallpaperBlur(wallpaperBlur),
+        topBarAlpha = topBarAlpha.coerceIn(0.15f, 1f),
     )
 }
 
