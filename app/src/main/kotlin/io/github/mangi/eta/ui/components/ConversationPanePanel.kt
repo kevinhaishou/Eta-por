@@ -82,6 +82,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.mangi.eta.ui.app.LocalAppearanceSettings
 import io.github.mangi.eta.R
 import io.github.mangi.eta.ui.app.rememberDeviceCapabilities
 import io.github.mangi.eta.ui.model.ConversationPaneUiState
@@ -144,7 +145,9 @@ private object ConversationPanelMetrics {
 @Composable
 internal fun conversationPaneContainerColor(): Color {
     val colors = MiuixTheme.colorScheme
-    return if (colors.background.luminance() > 0.5f) colors.surface else colors.surfaceContainer
+    val base = if (colors.background.luminance() > 0.5f) colors.surface else colors.surfaceContainer
+    // 开启自定义壁纸时抽屉改半透明磨砂，让壁纸从面板后透上来，与设置卡片观感统一。
+    return if (LocalAppearanceSettings.current.wallpaperEnabled) base.copy(alpha = 0.82f) else base
 }
 
 @Composable
