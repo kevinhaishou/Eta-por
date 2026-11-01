@@ -47,7 +47,7 @@ data class AppearanceSettings(
     /** 气泡圆角(dp)。 */
     val bubbleCornerRadius: Float = 20f,
     /** 气泡内边距(dp)。 */
-    val bubblePadding: Float = 12f,
+    val bubblePadding: Float = 10f,
     /** 用户气泡不透明度。 */
     val bubbleUserAlpha: Float = 1f,
     /** AI 气泡不透明度。 */
