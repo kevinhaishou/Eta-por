@@ -90,6 +90,12 @@ internal fun AppearanceSettingsScreen(onBack: () -> Unit) {
     var bubblePaddingDraft by remember(appearance.bubblePadding) {
         mutableFloatStateOf(appearance.bubblePadding)
     }
+    var bubbleUserAlphaDraft by remember(appearance.bubbleUserAlpha) {
+        mutableFloatStateOf(appearance.bubbleUserAlpha)
+    }
+    var bubbleAiAlphaDraft by remember(appearance.bubbleAiAlpha) {
+        mutableFloatStateOf(appearance.bubbleAiAlpha)
+    }
     var blurDraft by remember(appearance.wallpaperBlur) { mutableFloatStateOf(appearance.wallpaperBlur) }
     val blurSupported = isRuntimeShaderSupported()
 
@@ -643,6 +649,32 @@ internal fun AppearanceSettingsScreen(onBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 valueRange = 8f..20f,
                 onValueChangeFinished = { update { it.copy(bubblePadding = bubblePaddingDraft) } },
+            )
+            Text(
+                "用户气泡不透明度 ${(bubbleUserAlphaDraft * 100f).roundToInt()}%",
+                style = MiuixTheme.textStyles.body2,
+            )
+            Slider(
+                value = bubbleUserAlphaDraft.coerceIn(0.2f, 1f),
+                onValueChange = { bubbleUserAlphaDraft = it },
+                modifier = Modifier.fillMaxWidth(),
+                valueRange = 0.2f..1f,
+                onValueChangeFinished = {
+                    update { it.copy(bubbleUserAlpha = bubbleUserAlphaDraft) }
+                },
+            )
+            Text(
+                "AI 气泡不透明度 ${(bubbleAiAlphaDraft * 100f).roundToInt()}%",
+                style = MiuixTheme.textStyles.body2,
+            )
+            Slider(
+                value = bubbleAiAlphaDraft.coerceIn(0.2f, 1f),
+                onValueChange = { bubbleAiAlphaDraft = it },
+                modifier = Modifier.fillMaxWidth(),
+                valueRange = 0.2f..1f,
+                onValueChangeFinished = {
+                    update { it.copy(bubbleAiAlpha = bubbleAiAlphaDraft) }
+                },
             )
             MiuixDialogActions(
                 confirmText = "完成",
