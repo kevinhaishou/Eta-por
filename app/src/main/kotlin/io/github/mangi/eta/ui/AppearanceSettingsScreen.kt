@@ -84,6 +84,9 @@ internal fun AppearanceSettingsScreen(onBack: () -> Unit) {
     var dimDraft by remember(appearance.wallpaperDim) { mutableFloatStateOf(appearance.wallpaperDim) }
     var showBubbleDialog by remember { mutableStateOf(false) }
     var topBarAlphaDraft by remember(appearance.topBarAlpha) { mutableFloatStateOf(appearance.topBarAlpha) }
+    var paneAlphaDraft by remember(appearance.conversationPaneAlpha) {
+        mutableFloatStateOf(appearance.conversationPaneAlpha)
+    }
     var bubbleCornerDraft by remember(appearance.bubbleCornerRadius) {
         mutableFloatStateOf(appearance.bubbleCornerRadius)
     }
@@ -286,34 +289,60 @@ internal fun AppearanceSettingsScreen(onBack: () -> Unit) {
                                 }
                             },
                         )
-                        EtaPreferenceDivider(hasLeading = false)
-                        EtaArrowPreference(
-                            title = "顶栏透明度",
-                            summary = "调低可让顶栏更透出背景",
-                            endActions = {
-                                Text(
-                                    text = "${(topBarAlphaDraft * 100f).roundToInt()}%",
-                                    fontSize = MiuixTheme.textStyles.body2.fontSize,
-                                    color = MiuixTheme.colorScheme.onSurfaceVariantActions,
-                                )
-                            },
-                            bottomAction = {
-                                Slider(
-                                    value = topBarAlphaDraft.coerceIn(0.15f, 1f),
-                                    onValueChange = { topBarAlphaDraft = it },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    valueRange = 0.15f..1f,
-                                    onValueChangeFinished = {
-                                        update { it.copy(topBarAlpha = topBarAlphaDraft) }
-                                    },
-                                    showKeyPoints = true,
-                                    keyPoints = listOf(0.15f, 0.4f, 0.7f, 1f),
-                                    hapticEffect = SliderDefaults.SliderHapticEffect.Step,
-                                )
-                            },
-                        )
                     }
                 }
+                EtaPreferenceDivider(hasLeading = false)
+                EtaArrowPreference(
+                    title = "顶栏透明度",
+                    summary = "调低可让顶栏更透出壁纸",
+                    endActions = {
+                        Text(
+                            text = "${(topBarAlphaDraft * 100f).roundToInt()}%",
+                            fontSize = MiuixTheme.textStyles.body2.fontSize,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantActions,
+                        )
+                    },
+                    bottomAction = {
+                        Slider(
+                            value = topBarAlphaDraft.coerceIn(0.15f, 1f),
+                            onValueChange = { topBarAlphaDraft = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            valueRange = 0.15f..1f,
+                            onValueChangeFinished = {
+                                update { it.copy(topBarAlpha = topBarAlphaDraft) }
+                            },
+                            showKeyPoints = true,
+                            keyPoints = listOf(0.15f, 0.4f, 0.7f, 1f),
+                            hapticEffect = SliderDefaults.SliderHapticEffect.Step,
+                        )
+                    },
+                )
+                EtaPreferenceDivider(hasLeading = false)
+                EtaArrowPreference(
+                    title = "侧边栏透明度",
+                    summary = "调低可让会话侧边栏更透出壁纸",
+                    endActions = {
+                        Text(
+                            text = "${(paneAlphaDraft * 100f).roundToInt()}%",
+                            fontSize = MiuixTheme.textStyles.body2.fontSize,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantActions,
+                        )
+                    },
+                    bottomAction = {
+                        Slider(
+                            value = paneAlphaDraft.coerceIn(0.2f, 1f),
+                            onValueChange = { paneAlphaDraft = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            valueRange = 0.2f..1f,
+                            onValueChangeFinished = {
+                                update { it.copy(conversationPaneAlpha = paneAlphaDraft) }
+                            },
+                            showKeyPoints = true,
+                            keyPoints = listOf(0.2f, 0.5f, 0.8f, 1f),
+                            hapticEffect = SliderDefaults.SliderHapticEffect.Step,
+                        )
+                    },
+                )
                 EtaPreferenceDivider(hasLeading = false)
                 EtaSwitchPreference(
                     title = stringResource(R.string.appearance_swipe_dismiss),
