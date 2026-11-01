@@ -5,6 +5,13 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -72,6 +79,13 @@ internal fun AppearanceSettingsScreen(onBack: () -> Unit) {
     var showScaleDialog by remember { mutableStateOf(false) }
     var scaleInput by remember { mutableStateOf("") }
     var dimDraft by remember(appearance.wallpaperDim) { mutableFloatStateOf(appearance.wallpaperDim) }
+    var showBubbleDialog by remember { mutableStateOf(false) }
+    var bubbleCornerDraft by remember(appearance.bubbleCornerRadius) {
+        mutableFloatStateOf(appearance.bubbleCornerRadius)
+    }
+    var bubblePaddingDraft by remember(appearance.bubblePadding) {
+        mutableFloatStateOf(appearance.bubblePadding)
+    }
     var blurDraft by remember(appearance.wallpaperBlur) { mutableFloatStateOf(appearance.wallpaperBlur) }
     val blurSupported = isRuntimeShaderSupported()
 
@@ -419,21 +433,33 @@ internal fun AppearanceSettingsScreen(onBack: () -> Unit) {
                 }
             }
         }
+        item(key = "appearance_bubble_title") {
+            EtaPreferenceGroupTitle(text = "聊天气泡")
+        }
+        item(key = "appearance_bubble_card") {
+            EtaPreferenceGroup(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp)) {
+                EtaArrowPreference(
+                    title = "编辑气泡样式",
+                    summary = "分别设置用户与 AI 气泡的颜色、圆角与内边距",
+                    onClick = { showBubbleDialog = true },
+                )
+            }
+        }
         item(key = "appearance_avatar_title") {
-            EtaPreferenceGroupTitle(text = "聊天头像")
+            EtaPreferenceGroupTitle(text = "双方头像")
         }
         item(key = "appearance_avatar_card") {
             EtaPreferenceGroup(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp)) {
                 EtaSwitchPreference(
-                    title = "启用聊天头像",
-                    summary = "在对话中显示我的/AI 头像",
-                    checked = appearance.avatarEnabled,
-                    onCheckedChange = { enabled -> update { it.copy(avatarEnabled = enabled) } },
+                    title = "我的头像",
+                    summary = "在我的消息旁显示头像",
+                    checked = appearance.avatarMineEnabled,
+                    onCheckedChange = { enabled -> update { it.copy(avatarMineEnabled = enabled) } },
                 )
                 EtaPreferenceDivider(hasLeading = false)
                 EtaArrowPreference(
-                    title = "我的头像",
-                    summary = if (appearance.avatarMinePath.isBlank()) "未选择" else "已选择",
+                    title = "更换图片",
+                    summary = "我的头像",
                     onClick = {
                         avatarMinePicker.launch(
                             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
@@ -442,13 +468,32 @@ internal fun AppearanceSettingsScreen(onBack: () -> Unit) {
                 )
                 EtaPreferenceDivider(hasLeading = false)
                 EtaArrowPreference(
+                    title = "移除图片",
+                    summary = "我的头像",
+                    onClick = { update { it.copy(avatarMinePath = "") } },
+                )
+                EtaPreferenceDivider(hasLeading = false)
+                EtaSwitchPreference(
                     title = "AI 头像",
-                    summary = if (appearance.avatarAiPath.isBlank()) "未选择" else "已选择",
+                    summary = "在 AI 回复旁显示头像",
+                    checked = appearance.avatarAiEnabled,
+                    onCheckedChange = { enabled -> update { it.copy(avatarAiEnabled = enabled) } },
+                )
+                EtaPreferenceDivider(hasLeading = false)
+                EtaArrowPreference(
+                    title = "更换图片",
+                    summary = "AI 头像",
                     onClick = {
                         avatarAiPicker.launch(
                             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
                         )
                     },
+                )
+                EtaPreferenceDivider(hasLeading = false)
+                EtaArrowPreference(
+                    title = "移除图片",
+                    summary = "AI 头像",
+                    onClick = { update { it.copy(avatarAiPath = "") } },
                 )
             }
         }
@@ -478,6 +523,101 @@ internal fun AppearanceSettingsScreen(onBack: () -> Unit) {
                     parsedScale?.let { commitScale(it.toFloat()) }
                     showScaleDialog = false
                 },
+                modifier = Modifier.padding(top = 16.dp),
+            )
+        }
+    }
+
+    // 气泡样式编辑弹窗
+    val bubbleColorChoices = listOf(
+        0L to "跟随主题",
+        0xFF3B82F6L to "蓝",
+        0xFF8B5CF6L to "紫",
+        0xFF10B981L to "绿",
+        0xFFF97316L to "橙",
+        0xFFEC4899L to "粉",
+    )
+    EtaWindowDialog(
+        show = showBubbleDialog,
+        title = "编辑气泡样式",
+        summary = "分别设置用户与 AI 气泡的颜色、圆角与内边距",
+        onDismissRequest = { showBubbleDialog = false },
+    ) {
+        Column {
+            Text("用户气泡颜色", style = MiuixTheme.textStyles.body2)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(vertical = 8.dp),
+            ) {
+                bubbleColorChoices.forEach { (argb, _) ->
+                    val selected = appearance.bubbleUserColor == argb
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (argb == 0L) MiuixTheme.colorScheme.surfaceContainerHigh else Color(argb),
+                            )
+                            .border(
+                                width = if (selected) 2.dp else 1.dp,
+                                color = if (selected) {
+                                    MiuixTheme.colorScheme.primary
+                                } else {
+                                    MiuixTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                                },
+                                shape = CircleShape,
+                            )
+                            .clickable { update { it.copy(bubbleUserColor = argb) } },
+                    )
+                }
+            }
+            Text("AI 气泡颜色", style = MiuixTheme.textStyles.body2)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(vertical = 8.dp),
+            ) {
+                bubbleColorChoices.forEach { (argb, _) ->
+                    val selected = appearance.bubbleAiColor == argb
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (argb == 0L) MiuixTheme.colorScheme.surfaceContainerHigh else Color(argb),
+                            )
+                            .border(
+                                width = if (selected) 2.dp else 1.dp,
+                                color = if (selected) {
+                                    MiuixTheme.colorScheme.primary
+                                } else {
+                                    MiuixTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                                },
+                                shape = CircleShape,
+                            )
+                            .clickable { update { it.copy(bubbleAiColor = argb) } },
+                    )
+                }
+            }
+            Text("圆角 ${bubbleCornerDraft.roundToInt()}dp", style = MiuixTheme.textStyles.body2)
+            Slider(
+                value = bubbleCornerDraft,
+                onValueChange = { bubbleCornerDraft = it },
+                modifier = Modifier.fillMaxWidth(),
+                valueRange = 4f..28f,
+                onValueChangeFinished = { update { it.copy(bubbleCornerRadius = bubbleCornerDraft) } },
+            )
+            Text("内边距 ${bubblePaddingDraft.roundToInt()}dp", style = MiuixTheme.textStyles.body2)
+            Slider(
+                value = bubblePaddingDraft,
+                onValueChange = { bubblePaddingDraft = it },
+                modifier = Modifier.fillMaxWidth(),
+                valueRange = 8f..20f,
+                onValueChangeFinished = { update { it.copy(bubblePadding = bubblePaddingDraft) } },
+            )
+            MiuixDialogActions(
+                confirmText = "完成",
+                onCancel = { showBubbleDialog = false },
+                onConfirm = { showBubbleDialog = false },
                 modifier = Modifier.padding(top = 16.dp),
             )
         }
