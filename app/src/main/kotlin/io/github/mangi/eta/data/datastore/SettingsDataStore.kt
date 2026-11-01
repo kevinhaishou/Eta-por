@@ -150,6 +150,13 @@ internal object SettingsDataStore {
     private val APPEARANCE_PREDICTIVE_BACK_ENABLED =
         booleanPreferencesKey("appearance_predictive_back_enabled")
     private val APPEARANCE_INTERFACE_SCALE = floatPreferencesKey("appearance_interface_scale")
+    private val APPEARANCE_WALLPAPER_ENABLED = booleanPreferencesKey("appearance_wallpaper_enabled")
+    private val APPEARANCE_WALLPAPER_PATH = stringPreferencesKey("appearance_wallpaper_path")
+    private val APPEARANCE_WALLPAPER_DIM = floatPreferencesKey("appearance_wallpaper_dim")
+    private val APPEARANCE_WALLPAPER_BLUR = floatPreferencesKey("appearance_wallpaper_blur")
+    private val APPEARANCE_AVATAR_ENABLED = booleanPreferencesKey("appearance_avatar_enabled")
+    private val APPEARANCE_AVATAR_MINE_PATH = stringPreferencesKey("appearance_avatar_mine_path")
+    private val APPEARANCE_AVATAR_AI_PATH = stringPreferencesKey("appearance_avatar_ai_path")
     private const val SELECTED_MODEL_BY_PROVIDER_PREFIX = "selected_model_id_by_provider."
 
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = STORE_NAME)
@@ -482,6 +489,13 @@ internal object SettingsDataStore {
             swipeDismissEnabled = this[APPEARANCE_SWIPE_DISMISS_ENABLED] ?: true,
             predictiveBackEnabled = this[APPEARANCE_PREDICTIVE_BACK_ENABLED] ?: true,
             interfaceScale = this[APPEARANCE_INTERFACE_SCALE] ?: 1f,
+            wallpaperEnabled = this[APPEARANCE_WALLPAPER_ENABLED] ?: false,
+            wallpaperPath = this[APPEARANCE_WALLPAPER_PATH].orEmpty(),
+            wallpaperDim = this[APPEARANCE_WALLPAPER_DIM] ?: 0f,
+            wallpaperBlur = this[APPEARANCE_WALLPAPER_BLUR] ?: 0f,
+            avatarEnabled = this[APPEARANCE_AVATAR_ENABLED] ?: false,
+            avatarMinePath = this[APPEARANCE_AVATAR_MINE_PATH].orEmpty(),
+            avatarAiPath = this[APPEARANCE_AVATAR_AI_PATH].orEmpty(),
         ).normalized(),
     )
 
@@ -496,5 +510,12 @@ internal object SettingsDataStore {
         this[APPEARANCE_SWIPE_DISMISS_ENABLED] = settings.swipeDismissEnabled
         this[APPEARANCE_PREDICTIVE_BACK_ENABLED] = settings.predictiveBackEnabled
         this[APPEARANCE_INTERFACE_SCALE] = settings.interfaceScale
+        this[APPEARANCE_WALLPAPER_ENABLED] = settings.wallpaperEnabled
+        this[APPEARANCE_WALLPAPER_PATH] = settings.wallpaperPath
+        this[APPEARANCE_WALLPAPER_DIM] = settings.wallpaperDim
+        this[APPEARANCE_WALLPAPER_BLUR] = settings.wallpaperBlur
+        this[APPEARANCE_AVATAR_ENABLED] = settings.avatarEnabled
+        this[APPEARANCE_AVATAR_MINE_PATH] = settings.avatarMinePath
+        this[APPEARANCE_AVATAR_AI_PATH] = settings.avatarAiPath
     }
 }

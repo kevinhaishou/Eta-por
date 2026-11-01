@@ -31,7 +31,14 @@ import io.github.mangi.eta.data.model.MAX_INTERFACE_SCALE
 import io.github.mangi.eta.data.model.MIN_INTERFACE_SCALE
 import io.github.mangi.eta.data.model.normalizeInterfaceScale
 import io.github.mangi.eta.data.repository.AppearanceSettingsRepository
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
 import io.github.mangi.eta.ui.app.LocalAppearanceSettings
+import java.io.File
 import io.github.mangi.eta.ui.components.EtaArrowPreference
 import io.github.mangi.eta.ui.components.EtaCard
 import io.github.mangi.eta.ui.components.EtaOverlayDropdownPreference
@@ -65,6 +72,35 @@ internal fun AppearanceSettingsScreen(onBack: () -> Unit) {
     fun update(transform: (AppearanceSettings) -> AppearanceSettings) {
         coroutineScope.launch {
             AppearanceSettingsRepository.update(transform)
+        }
+    }
+
+    val context = LocalContext.current
+    val wallpaperPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia(),
+    ) { uri ->
+        if (uri != null) {
+            copyPickedImage(context, uri, "wallpaper")?.let { path ->
+                update { current -> current.copy(wallpaperPath = path, wallpaperEnabled = true) }
+            }
+        }
+    }
+    val avatarMinePicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia(),
+    ) { uri ->
+        if (uri != null) {
+            copyPickedImage(context, uri, "avatar_mine")?.let { path ->
+                update { current -> current.copy(avatarMinePath = path, avatarEnabled = true) }
+            }
+        }
+    }
+    val avatarAiPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia(),
+    ) { uri ->
+        if (uri != null) {
+            copyPickedImage(context, uri, "avatar_ai")?.let { path ->
+                update { current -> current.copy(avatarAiPath = path, avatarEnabled = true) }
+            }
         }
     }
 
@@ -275,6 +311,70 @@ internal fun AppearanceSettingsScreen(onBack: () -> Unit) {
                 )
             }
         }
+        item(key = "appearance_wallpaper_title") {
+            EtaPreferenceGroupTitle(text = "壁纸与背景")
+        }
+        item(key = "appearance_wallpaper_card") {
+            EtaPreferenceGroup(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp)) {
+                EtaSwitchPreference(
+                    title = "使用自定义壁纸",
+                    summary = "把图片铺满作为应用背景",
+                    checked = appearance.wallpaperEnabled,
+                    onCheckedChange = { enabled -> update { it.copy(wallpaperEnabled = enabled) } },
+                )
+                EtaPreferenceDivider(hasLeading = false)
+                EtaArrowPreference(
+                    title = "选择壁纸",
+                    summary = if (appearance.wallpaperPath.isBlank()) "未选择" else "已选择",
+                    onClick = {
+                        wallpaperPicker.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                        )
+                    },
+                )
+                if (appearance.wallpaperPath.isNotBlank()) {
+                    EtaPreferenceDivider(hasLeading = false)
+                    EtaArrowPreference(
+                        title = "移除壁纸",
+                        summary = "清空当前壁纸图片",
+                        onClick = { update { it.copy(wallpaperPath = "") } },
+                    )
+                }
+            }
+        }
+        item(key = "appearance_avatar_title") {
+            EtaPreferenceGroupTitle(text = "聊天头像")
+        }
+        item(key = "appearance_avatar_card") {
+            EtaPreferenceGroup(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp)) {
+                EtaSwitchPreference(
+                    title = "启用聊天头像",
+                    summary = "在对话中显示我的/AI 头像",
+                    checked = appearance.avatarEnabled,
+                    onCheckedChange = { enabled -> update { it.copy(avatarEnabled = enabled) } },
+                )
+                EtaPreferenceDivider(hasLeading = false)
+                EtaArrowPreference(
+                    title = "我的头像",
+                    summary = if (appearance.avatarMinePath.isBlank()) "未选择" else "已选择",
+                    onClick = {
+                        avatarMinePicker.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                        )
+                    },
+                )
+                EtaPreferenceDivider(hasLeading = false)
+                EtaArrowPreference(
+                    title = "AI 头像",
+                    summary = if (appearance.avatarAiPath.isBlank()) "未选择" else "已选择",
+                    onClick = {
+                        avatarAiPicker.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                        )
+                    },
+                )
+            }
+        }
     }
 
     val parsedScale = scaleInput.toIntOrNull()
@@ -305,4 +405,16 @@ internal fun AppearanceSettingsScreen(onBack: () -> Unit) {
             )
         }
     }
+}
+
+
+private fun copyPickedImage(context: Context, uri: Uri, baseName: String): String? {
+    return runCatching {
+        val dir = File(context.filesDir, "appearance").apply { mkdirs() }
+        val out = File(dir, baseName + "-" + System.currentTimeMillis() + ".img")
+        context.contentResolver.openInputStream(uri)?.use { input ->
+            out.outputStream().use { output -> input.copyTo(output) }
+        }
+        out.absolutePath
+    }.getOrNull()
 }

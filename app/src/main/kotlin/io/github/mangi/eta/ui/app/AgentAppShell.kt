@@ -209,6 +209,7 @@ internal fun AgentAppShell(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
+        WallpaperBackground()
         if (conversationPaneState != null && currentRoute is AppRoute.Home) {
             ConversationSidePaneScaffold(
                 state = conversationPaneState,
