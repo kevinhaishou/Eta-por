@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import io.github.mangi.eta.data.model.AppearanceTopBarBlurStyle
+import io.github.mangi.eta.ui.app.LocalAppearanceSettings
 import io.github.mangi.eta.ui.app.LocalBlurEnabled
 import io.github.mangi.eta.ui.app.LocalTopBarBlurStyle
 import top.yukonga.miuix.kmp.blur.BlendColorEntry
@@ -36,8 +37,9 @@ internal fun TopBarBackdrop(
     content: @Composable () -> Unit,
 ) {
     val surfaceColor = MiuixTheme.colorScheme.surface
+    val topBarAlpha = LocalAppearanceSettings.current.topBarAlpha
     val modifier = when {
-        backdrop == null -> Modifier.background(surfaceColor)
+        backdrop == null -> Modifier.background(surfaceColor.copy(alpha = topBarAlpha))
         LocalTopBarBlurStyle.current == AppearanceTopBarBlurStyle.PROGRESSIVE -> {
             Modifier.progressiveTextureBlur(
                 backdrop = backdrop,
@@ -46,7 +48,7 @@ internal fun TopBarBackdrop(
                 blurRadius = ProgressiveTopBarBlurRadius,
                 colors = BlurColors(
                     blendColors = listOf(
-                        BlendColorEntry(surfaceColor.copy(alpha = ProgressiveTopBarSurfaceAlpha)),
+                        BlendColorEntry(surfaceColor.copy(alpha = topBarAlpha)),
                     ),
                 ),
             )
@@ -58,7 +60,7 @@ internal fun TopBarBackdrop(
                 blurRadius = TopBarBlurRadius,
                 colors = BlurColors(
                     blendColors = listOf(
-                        BlendColorEntry(surfaceColor.copy(alpha = TopBarSurfaceAlpha)),
+                        BlendColorEntry(surfaceColor.copy(alpha = topBarAlpha)),
                     ),
                 ),
             )
