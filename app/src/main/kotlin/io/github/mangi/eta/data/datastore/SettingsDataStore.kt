@@ -493,9 +493,9 @@ internal object SettingsDataStore {
             pureBlackEnabled = this[APPEARANCE_PURE_BLACK_ENABLED] ?: false,
             blurEnabled = this[APPEARANCE_BLUR_ENABLED] ?: true,
             topBarBlurStyle = AppearanceTopBarBlurStyle.fromPersistedValue(
-            topBarAlpha = this[APPEARANCE_TOP_BAR_ALPHA] ?: 0.8f,
                 this[APPEARANCE_TOP_BAR_BLUR_STYLE],
             ),
+            topBarAlpha = this[APPEARANCE_TOP_BAR_ALPHA] ?: 0.8f,
             swipeDismissEnabled = this[APPEARANCE_SWIPE_DISMISS_ENABLED] ?: true,
             predictiveBackEnabled = this[APPEARANCE_PREDICTIVE_BACK_ENABLED] ?: true,
             interfaceScale = this[APPEARANCE_INTERFACE_SCALE] ?: 1f,
