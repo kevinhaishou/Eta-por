@@ -89,8 +89,14 @@ jobs:
           if [[ "$GITHUB_REF_TYPE" != "tag" ]]; then
             metadata_arg=("-Peta.buildMetadata=${GITHUB_SHA::7}")
           fi
-          ./gradlew --no-daemon --no-configuration-cache "${metadata_arg[@]}" \
-            :app:assembleDebug :app:assembleRelease
+          # gradle.properties 里的 kotlin.daemon.jvmargs=2g 是给手机本地编译定的上限，
+          # CI runner 内存充裕，这里用 -P 覆盖成 6g，并把 debug / release 拆成两次构建，
+          # 避免两个变体的 Kotlin 编译同时在同一个守护进程里抢堆导致 OOM。
+          kotlin_heap=(-Pkotlin.daemon.jvmargs=-Xmx6g)
+          ./gradlew --no-daemon --no-configuration-cache "${metadata_arg[@]}" "${kotlin_heap[@]}" \
+            :app:assembleDebug
+          ./gradlew --no-daemon --no-configuration-cache "${metadata_arg[@]}" "${kotlin_heap[@]}" \
+            :app:assembleRelease
 
       - name: 验证并整理 APK
         id: apk
