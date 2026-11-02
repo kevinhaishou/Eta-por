@@ -235,6 +235,14 @@ internal fun ChatMessageItem(
     } else {
         ""
     }
+    // AI 侧共用气泡底色（默认深灰），可被「编辑气泡样式」覆盖。
+    val aiBubbleColor = (
+        if (appearance.bubbleAiColor != 0L) {
+            Color(appearance.bubbleAiColor)
+        } else {
+            MiuixTheme.colorScheme.surfaceContainerHigh
+        }
+        ).copy(alpha = appearance.bubbleAiAlpha)
     // 双方气泡共用上限：约屏宽 75%，AI 长回复不再整行铺满。
     val maxBubbleWidth = with(LocalConfiguration.current) {
         (screenWidthDp * 0.75f).dp
@@ -280,24 +288,13 @@ internal fun ChatMessageItem(
             onEdit = { onEditMessage(message.id) },
             onSelectCandidate = { onSelectReplyCandidate(message.id, it) },
             onFork = onForkMessage?.let { callback -> { callback(message.id) } },
+            // 气泡只包正文，操作图标行留在气泡外，避免被挤压、裁切。
+            bubbleColor = aiBubbleColor,
+            bubbleCornerRadius = appearance.bubbleCornerRadius.dp,
+            bubblePadding = appearance.bubblePadding.dp,
             modifier = Modifier
                 .widthIn(max = maxBubbleWidth)
-                .weight(1f, fill = false)
-                .then(
-                    // AI 气泡始终有底色（默认深灰），贴近微信的对话观感。
-                    Modifier
-                        .clip(RoundedCornerShape(appearance.bubbleCornerRadius.dp))
-                        .background(
-                            (
-                                if (appearance.bubbleAiColor != 0L) {
-                                    Color(appearance.bubbleAiColor)
-                                } else {
-                                    MiuixTheme.colorScheme.surfaceContainerHigh
-                                }
-                                ).copy(alpha = appearance.bubbleAiAlpha),
-                        )
-                        .padding(appearance.bubblePadding.dp),
-                ),
+                .weight(1f, fill = false),
             )
         }
         is SystemNoticeMessageUi -> if (
@@ -337,6 +334,9 @@ internal fun ChatMessageItem(
                 messageActionsEnabled = messageActionsEnabled,
                 onDelete = { onDeleteMessage(message.id) },
                 onRegenerate = { onRegenerateMessage(message.id) },
+                bubbleColor = aiBubbleColor,
+                bubbleCornerRadius = appearance.bubbleCornerRadius.dp,
+                bubblePadding = appearance.bubblePadding.dp,
                 modifier = modifier,
             )
         }
@@ -680,6 +680,10 @@ private fun MessageTimestampLabel(
         text = label,
         style = MiuixTheme.textStyles.body2,
         color = MiuixTheme.colorScheme.onSurfaceVariantSummary.copy(alpha = 0.75f),
+        // 空间被挤压时保持单行，避免逐字竖排（"09:11" 曾被压成竖列）。
+        maxLines = 1,
+        softWrap = false,
+        overflow = TextOverflow.Visible,
         modifier = modifier,
     )
 }
@@ -778,6 +782,10 @@ private fun AgentMessageBlock(
     message: AgentMessageUi,
     allowSpeech: Boolean = false,
     assistantOverlay: Boolean = false,
+    /** 非空时给「正文」套气泡；操作行始终留在气泡外。 */
+    bubbleColor: Color? = null,
+    bubbleCornerRadius: Dp = 6.dp,
+    bubblePadding: Dp = 8.dp,
     retainedStreamingState: StreamingMarkdownState?,
     showCopyAction: Boolean,
     showMessageActions: Boolean,
@@ -835,6 +843,17 @@ private fun AgentMessageBlock(
         if (character != null) {
             CharacterReplyHeader(character = character, isGreeting = isGreeting)
         }
+        Box(
+            modifier = if (bubbleColor != null) {
+                Modifier
+                    .clip(RoundedCornerShape(bubbleCornerRadius))
+                    .background(bubbleColor)
+                    .padding(bubblePadding)
+            } else {
+                Modifier
+            },
+        ) {
+        Column {
         when {
             message.content.isBlank() && message.isStreaming -> {
                 AITypingIndicator(
@@ -881,6 +900,8 @@ private fun AgentMessageBlock(
         }
         message.searchSuggestionsHtml.forEach { html ->
             SearchSuggestionsView(html = html, modifier = Modifier.padding(top = 8.dp))
+        }
+        }
         }
 
         // 回答显现完成后才出现操作行；淡入展开避免贴底滚动时整页突然跳动一行高度。
