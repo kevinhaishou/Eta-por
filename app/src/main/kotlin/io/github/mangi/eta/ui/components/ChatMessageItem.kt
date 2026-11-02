@@ -235,6 +235,10 @@ internal fun ChatMessageItem(
     } else {
         ""
     }
+    // 双方气泡共用上限：约屏宽 75%，AI 长回复不再整行铺满。
+    val maxBubbleWidth = with(LocalConfiguration.current) {
+        (screenWidthDp * 0.75f).dp
+    }
     when (message) {
         is UserMessageUi -> Row(
             modifier = modifier.fillMaxWidth(),
@@ -277,6 +281,7 @@ internal fun ChatMessageItem(
             onSelectCandidate = { onSelectReplyCandidate(message.id, it) },
             onFork = onForkMessage?.let { callback -> { callback(message.id) } },
             modifier = Modifier
+                .widthIn(max = maxBubbleWidth)
                 .weight(1f, fill = false)
                 .then(
                     // AI 气泡始终有底色（默认深灰），贴近微信的对话观感。
