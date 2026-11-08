@@ -156,6 +156,7 @@ internal fun AgentAppShell(
     val pageContent: @Composable () -> Unit = {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
+            containerColor = Color.Transparent,
             contentWindowInsets = WindowInsets.safeDrawing.only(
                 WindowInsetsSides.Top + WindowInsetsSides.Horizontal,
             ),
@@ -213,6 +214,8 @@ internal fun AgentAppShell(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
+        // 本页不透明底板（壁纸或主题底色），挡住导航栈下层，避免半透明卡片透字。
+        WallpaperBackground()
         if (conversationPaneState != null && currentRoute is AppRoute.Home) {
             ConversationSidePaneScaffold(
                 state = conversationPaneState,

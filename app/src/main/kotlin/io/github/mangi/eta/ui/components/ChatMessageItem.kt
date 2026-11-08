@@ -72,6 +72,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
@@ -84,6 +85,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.mangi.eta.R
@@ -97,6 +99,7 @@ import io.github.mangi.eta.ui.markdown.StreamingMarkdown
 import io.github.mangi.eta.ui.markdown.StreamingMarkdownState
 import io.github.mangi.eta.ui.markdown.THINKING_LINE_HEIGHT_SP
 import io.github.mangi.eta.ui.model.AgentChatMessageUi
+import io.github.mangi.eta.ui.app.LocalAppearanceSettings
 import io.github.mangi.eta.ui.model.AgentMessageUi
 import io.github.mangi.eta.ui.model.RunTraceMessageUi
 import io.github.mangi.eta.ui.model.SuggestionChipsMessageUi
@@ -221,18 +224,58 @@ internal fun ChatMessageItem(
     /** 非空时才在卡片末尾出现「新建分支」；工作过程里的中间条目传 null。 */
     onForkMessage: ((String) -> Unit)? = null,
 ) {
+    val appearance = LocalAppearanceSettings.current
+    val avatarMinePath = if (appearance.avatarMineEnabled) {
+        appearance.avatarMinePath
+    } else {
+        ""
+    }
+    val avatarAiPath = if (appearance.avatarAiEnabled) {
+        appearance.avatarAiPath
+    } else {
+        ""
+    }
+    // AI 侧共用气泡底色（默认深灰），可被「编辑气泡样式」覆盖。
+    val aiBubbleColor = (
+        if (appearance.bubbleAiColor != 0L) {
+            Color(appearance.bubbleAiColor)
+        } else {
+            MiuixTheme.colorScheme.surfaceContainerHigh
+        }
+        ).copy(alpha = appearance.bubbleAiAlpha)
+    // 双方气泡共用上限：约屏宽 75%，AI 长回复不再整行铺满。
+    val maxBubbleWidth = with(LocalConfiguration.current) {
+        (screenWidthDp * 0.75f).dp
+    }
     when (message) {
-        is UserMessageUi -> UserMessageBubble(
-            message = message,
-            assistantOverlay = assistantOverlay,
-            actionsEnabled = messageActionsEnabled,
-            isEditing = isEditing,
-            onEdit = { onEditMessage(message.id) },
-            onDelete = { onDeleteMessage(message.id) },
-            onFork = onForkMessage?.let { callback -> { callback(message.id) } },
-            modifier = modifier,
-        )
-        is AgentMessageUi -> AgentMessageBlock(
+        is UserMessageUi -> Row(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.Top,
+        ) {
+            UserMessageBubble(
+                message = message,
+                assistantOverlay = assistantOverlay,
+                actionsEnabled = messageActionsEnabled,
+                isEditing = isEditing,
+                onEdit = { onEditMessage(message.id) },
+                onDelete = { onDeleteMessage(message.id) },
+                onFork = onForkMessage?.let { callback -> { callback(message.id) } },
+                modifier = Modifier.weight(1f, fill = false),
+            )
+            if (avatarMinePath.isNotBlank()) {
+                MessageAvatar(path = avatarMinePath, modifier = Modifier.padding(start = 6.dp))
+            }
+        }
+        is AgentMessageUi -> Row(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.Top,
+        ) {
+            if (avatarAiPath.isNotBlank()) {
+                MessageAvatar(path = avatarAiPath, modifier = Modifier.padding(end = 6.dp))
+            }
+            AgentMessageBlock(
             message = message,
             allowSpeech = true,
             assistantOverlay = assistantOverlay,
@@ -245,8 +288,15 @@ internal fun ChatMessageItem(
             onEdit = { onEditMessage(message.id) },
             onSelectCandidate = { onSelectReplyCandidate(message.id, it) },
             onFork = onForkMessage?.let { callback -> { callback(message.id) } },
-            modifier = modifier,
-        )
+            // 气泡只包正文，操作图标行留在气泡外，避免被挤压、裁切。
+            bubbleColor = aiBubbleColor,
+            bubbleCornerRadius = appearance.bubbleCornerRadius.dp,
+            bubblePadding = appearance.bubblePadding.dp,
+            modifier = Modifier
+                .widthIn(max = maxBubbleWidth)
+                .weight(1f, fill = false),
+            )
+        }
         is SystemNoticeMessageUi -> if (
             message.code == SystemNoticeCode.ContextCompaction ||
             message.code == SystemNoticeCode.CommandNote
@@ -284,6 +334,9 @@ internal fun ChatMessageItem(
                 messageActionsEnabled = messageActionsEnabled,
                 onDelete = { onDeleteMessage(message.id) },
                 onRegenerate = { onRegenerateMessage(message.id) },
+                bubbleColor = aiBubbleColor,
+                bubbleCornerRadius = appearance.bubbleCornerRadius.dp,
+                bubblePadding = appearance.bubblePadding.dp,
                 modifier = modifier,
             )
         }
@@ -347,6 +400,28 @@ private fun UserMessageBubble(
     val skillCommand = remember(message.content) {
         AgentSkillCommandPromptCodec.parseHeader(message.content)
     }
+    val appearance = LocalAppearanceSettings.current
+    val bubbleRadius = appearance.bubbleCornerRadius
+    // 默认取微信观感：浅色下亮绿、深色下稍暗的绿；可在「编辑气泡样式」里改。
+    val isDarkScheme = MiuixTheme.colorScheme.background.luminance() < 0.5f
+    val defaultUserBubbleColor = if (isDarkScheme) Color(0xFF3EB575) else Color(0xFF95EC69)
+    // 不透明底色用于判断明暗（alpha 不应参与对比判定），背景再单独套透明度。
+    val bubbleUserBase = if (appearance.bubbleUserColor != 0L) {
+        Color(appearance.bubbleUserColor)
+    } else {
+        defaultUserBubbleColor
+    }
+    val bubbleUserContainer = bubbleUserBase.copy(alpha = appearance.bubbleUserAlpha)
+    // 微信式自动对比：底色亮用近黑字，底色暗用白字，任何自定义气泡色都不发飘。
+    val bubbleUserContentColor = if (bubbleUserBase.luminance() > 0.55f) {
+        Color(0xCC000000)
+    } else {
+        Color(0xFFF2F2F2)
+    }
+    // 气泡上限跟随屏宽（约 75%），宽屏/折叠屏不再被固定 280dp 限窄而频繁折行。
+    val maxBubbleWidth = with(LocalConfiguration.current) {
+        (screenWidthDp * 0.75f).dp
+    }
     val overlayBubbleColor = if (MiuixTheme.colorScheme.background.luminance() < 0.5f) {
         Color(0xFF37393D)
     } else {
@@ -406,18 +481,18 @@ private fun UserMessageBubble(
         ) {
             Column(
                 modifier = Modifier
-                    .widthIn(max = 320.dp)
+                    .widthIn(max = maxBubbleWidth)
                     .then(
                         if (assistantOverlay) {
                             Modifier.background(overlayBubbleColor, RoundedCornerShape(10.dp))
                         } else {
                             Modifier.squircleSurface(
-                                color = MiuixTheme.colorScheme.surfaceContainerHigh,
-                                topStart = 20.dp,
-                                topEnd = 20.dp,
+                                color = bubbleUserContainer,
+                                topStart = bubbleRadius.dp,
+                                topEnd = bubbleRadius.dp,
                                 // 描边只支持统一圆角，编辑态收起气泡尾角，让描边与填充贴合。
-                                bottomEnd = if (isEditing) 20.dp else 6.dp,
-                                bottomStart = 20.dp,
+                                bottomEnd = if (isEditing) bubbleRadius.dp else minOf(6f, bubbleRadius).dp,
+                                bottomStart = bubbleRadius.dp,
                             )
                         }
                     )
@@ -433,8 +508,8 @@ private fun UserMessageBubble(
                         }
                     )
                     .padding(
-                        horizontal = if (assistantOverlay) 12.dp else 16.dp,
-                        vertical = if (assistantOverlay) 8.dp else 12.dp,
+                        horizontal = if (assistantOverlay) 12.dp else (appearance.bubblePadding + 2f).dp,
+                        vertical = if (assistantOverlay) 8.dp else appearance.bubblePadding.dp,
                     ),
             ) {
                 skillCommand?.let { skill ->
@@ -443,7 +518,7 @@ private fun UserMessageBubble(
                         modifier = Modifier
                             .padding(bottom = 8.dp)
                             .background(
-                                color = MiuixTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                color = bubbleUserContentColor.copy(alpha = 0.14f),
                                 shape = RoundedCornerShape(9.dp),
                             )
                             .padding(horizontal = 8.dp, vertical = 3.dp),
@@ -452,12 +527,12 @@ private fun UserMessageBubble(
                             text = "/" + skill.skillId,
                             style = MiuixTheme.textStyles.footnote1,
                             fontWeight = FontWeight.Medium,
-                            color = MiuixTheme.colorScheme.primary,
+                            color = bubbleUserContentColor,
                         )
                         Text(
                             text = " · " + stringResource(R.string.agent_command_skill_tag),
                             style = MiuixTheme.textStyles.footnote1,
-                            color = MiuixTheme.colorScheme.primary.copy(alpha = 0.72f),
+                            color = bubbleUserContentColor.copy(alpha = 0.72f),
                         )
                     }
                 }
@@ -503,7 +578,7 @@ private fun UserMessageBubble(
                         Text(
                             text = visiblePrompt.request,
                             style = MiuixTheme.textStyles.body1,
-                            color = MiuixTheme.colorScheme.onSurface,
+                            color = bubbleUserContentColor,
                         )
                     }
                 }
@@ -511,7 +586,7 @@ private fun UserMessageBubble(
                     Text(
                         text = stringResource(R.string.ui_edited_c36776),
                         style = MiuixTheme.textStyles.body2,
-                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        color = bubbleUserContentColor.copy(alpha = 0.65f),
                         modifier = Modifier.padding(top = 4.dp),
                     )
                 }
@@ -605,6 +680,10 @@ private fun MessageTimestampLabel(
         text = label,
         style = MiuixTheme.textStyles.body2,
         color = MiuixTheme.colorScheme.onSurfaceVariantSummary.copy(alpha = 0.75f),
+        // 空间被挤压时保持单行，避免逐字竖排（"09:11" 曾被压成竖列）。
+        maxLines = 1,
+        softWrap = false,
+        overflow = TextOverflow.Visible,
         modifier = modifier,
     )
 }
@@ -703,6 +782,10 @@ private fun AgentMessageBlock(
     message: AgentMessageUi,
     allowSpeech: Boolean = false,
     assistantOverlay: Boolean = false,
+    /** 非空时给「正文」套气泡；操作行始终留在气泡外。 */
+    bubbleColor: Color? = null,
+    bubbleCornerRadius: Dp = 6.dp,
+    bubblePadding: Dp = 8.dp,
     retainedStreamingState: StreamingMarkdownState?,
     showCopyAction: Boolean,
     showMessageActions: Boolean,
@@ -760,6 +843,17 @@ private fun AgentMessageBlock(
         if (character != null) {
             CharacterReplyHeader(character = character, isGreeting = isGreeting)
         }
+        Box(
+            modifier = if (bubbleColor != null) {
+                Modifier
+                    .clip(RoundedCornerShape(bubbleCornerRadius))
+                    .background(bubbleColor)
+                    .padding(bubblePadding)
+            } else {
+                Modifier
+            },
+        ) {
+        Column {
         when {
             message.content.isBlank() && message.isStreaming -> {
                 AITypingIndicator(
@@ -806,6 +900,8 @@ private fun AgentMessageBlock(
         }
         message.searchSuggestionsHtml.forEach { html ->
             SearchSuggestionsView(html = html, modifier = Modifier.padding(top = 8.dp))
+        }
+        }
         }
 
         // 回答显现完成后才出现操作行；淡入展开避免贴底滚动时整页突然跳动一行高度。
@@ -1368,4 +1464,25 @@ private fun SuggestionChipsRow(
             }
         }
     }
+}
+
+
+/** 聊天头像：圆形裁剪的小图，读取 app 私有目录里的图片文件。 */
+@Composable
+private fun MessageAvatar(path: String, modifier: Modifier = Modifier) {
+    val bitmap by androidx.compose.runtime.produceState<ImageBitmap?>(
+        initialValue = null,
+        path,
+    ) {
+        value = runCatching {
+            android.graphics.BitmapFactory.decodeFile(path)?.asImageBitmap()
+        }.getOrNull()
+    }
+    val bmp = bitmap ?: return
+    Image(
+        bitmap = bmp,
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier = modifier.size(30.dp).clip(CircleShape),
+    )
 }
