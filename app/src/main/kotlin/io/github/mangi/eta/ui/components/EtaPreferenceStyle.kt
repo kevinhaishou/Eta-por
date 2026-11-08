@@ -57,10 +57,25 @@ internal fun EtaPreferenceTheme(content: @Composable () -> Unit) {
 internal fun EtaPreferenceGroup(
     modifier: Modifier = Modifier.padding(horizontal = EtaPreferenceDefaults.SidePadding).padding(bottom = EtaPreferenceDefaults.GroupSpacing),
     insideMargin: PaddingValues = PaddingValues(0.dp),
-    colors: CardColors = CardDefaults.defaultColors(),
+    colors: CardColors? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    EtaCard(modifier = modifier, insideMargin = insideMargin, colors = colors, content = content)
+    // 开启自定义壁纸时，卡片改用半透明容器，让壁纸底色（如淡紫）透上来，
+    // 形成参考设计那种通透的磨砂卡片；未开启时维持 miuix 默认实色。
+    val appearance = LocalAppearanceSettings.current
+    val scheme = MiuixTheme.colorScheme
+    val resolvedColors = colors ?: if (appearance.wallpaperEnabled) {
+        val isLight = scheme.background.luminance() > 0.5f
+        val container = if (isLight) {
+            Color.White.copy(alpha = 0.72f)
+        } else {
+            scheme.surface.copy(alpha = 0.62f)
+        }
+        CardDefaults.defaultColors(color = container, contentColor = scheme.onSurface)
+    } else {
+        CardDefaults.defaultColors()
+    }
+    EtaCard(modifier = modifier, insideMargin = insideMargin, colors = resolvedColors, content = content)
 }
 
 @Composable

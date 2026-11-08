@@ -59,38 +59,53 @@ jobs:
       - name: 配置构建环境
         uses: ./.github/actions/setup-build
 
-      - name: 还原发布证书
+      - name: 还原发布证书（无 Secrets 时用临时证书）
         env:
           ETA_RELEASE_KEYSTORE_BASE64: ${{ secrets.ETA_RELEASE_KEYSTORE_BASE64 }}
           ETA_RELEASE_STORE_PASSWORD: ${{ secrets.ETA_RELEASE_STORE_PASSWORD }}
           ETA_RELEASE_KEY_ALIAS: ${{ secrets.ETA_RELEASE_KEY_ALIAS }}
           ETA_RELEASE_KEY_PASSWORD: ${{ secrets.ETA_RELEASE_KEY_PASSWORD }}
         run: |
-          if [[ -z "$ETA_RELEASE_KEYSTORE_BASE64" ||
-                -z "$ETA_RELEASE_STORE_PASSWORD" ||
-                -z "$ETA_RELEASE_KEY_ALIAS" ||
-                -z "$ETA_RELEASE_KEY_PASSWORD" ]]; then
-            echo "::error::缺少 Release 签名 Secrets，请检查仓库的 Actions Secrets。"
-            exit 1
+          JKS="$RUNNER_TEMP/eta-release.jks"
+          if [[ -n "$ETA_RELEASE_KEYSTORE_BASE64" &&
+                -n "$ETA_RELEASE_STORE_PASSWORD" &&
+                -n "$ETA_RELEASE_KEY_ALIAS" &&
+                -n "$ETA_RELEASE_KEY_PASSWORD" ]]; then
+            printf '%s' "$ETA_RELEASE_KEYSTORE_BASE64" | base64 --decode > "$JKS"
+          else
+            echo "::warning::未配置 Release Secrets，改用临时证书出包（本地再重签）。"
+            keytool -genkeypair -keystore "$JKS" -storepass ci123456 -keypass ci123456 \
+              -alias ci -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=eta-ci,O=eta,C=US"
+            ETA_RELEASE_STORE_PASSWORD=ci123456
+            ETA_RELEASE_KEY_ALIAS=ci
+            ETA_RELEASE_KEY_PASSWORD=ci123456
           fi
-          printf '%s' "$ETA_RELEASE_KEYSTORE_BASE64" \
-            | base64 --decode \
-            > "$RUNNER_TEMP/eta-release.jks"
+          echo "ETA_RELEASE_STORE_FILE=$JKS" >> "$GITHUB_ENV"
+          echo "ETA_RELEASE_STORE_PASSWORD=$ETA_RELEASE_STORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "ETA_RELEASE_KEY_ALIAS=$ETA_RELEASE_KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "ETA_RELEASE_KEY_PASSWORD=$ETA_RELEASE_KEY_PASSWORD" >> "$GITHUB_ENV"
 
       - name: 构建 Debug 与 Release APK
         env:
-          ETA_RELEASE_STORE_FILE: ${{ runner.temp }}/eta-release.jks
-          ETA_RELEASE_STORE_PASSWORD: ${{ secrets.ETA_RELEASE_STORE_PASSWORD }}
-          ETA_RELEASE_KEY_ALIAS: ${{ secrets.ETA_RELEASE_KEY_ALIAS }}
-          ETA_RELEASE_KEY_PASSWORD: ${{ secrets.ETA_RELEASE_KEY_PASSWORD }}
+          ETA_RELEASE_STORE_FILE: ${{ env.ETA_RELEASE_STORE_FILE }}
+          ETA_RELEASE_STORE_PASSWORD: ${{ env.ETA_RELEASE_STORE_PASSWORD }}
+          ETA_RELEASE_KEY_ALIAS: ${{ env.ETA_RELEASE_KEY_ALIAS }}
+          ETA_RELEASE_KEY_PASSWORD: ${{ env.ETA_RELEASE_KEY_PASSWORD }}
         # 发版标签保持纯净版本名；其余构建追加 +<短提交号>，与已发布版本区分
         run: |
           metadata_arg=()
           if [[ "$GITHUB_REF_TYPE" != "tag" ]]; then
             metadata_arg=("-Peta.buildMetadata=${GITHUB_SHA::7}")
           fi
-          ./gradlew --no-daemon --no-configuration-cache "${metadata_arg[@]}" \
-            :app:assembleDebug :app:assembleRelease
+          # gradle.properties 里的 kotlin.daemon.jvmargs=2g 是给手机本地编译定的上限，
+          # CI runner 内存充裕，这里用 -P 覆盖成 6g，并把 debug / release 拆成两次构建，
+          # 避免两个变体的 Kotlin 编译同时在同一个守护进程里抢堆导致 OOM。
+          kotlin_heap=(-Pkotlin.daemon.jvmargs=-Xmx6g)
+          ./gradlew --no-daemon --no-configuration-cache "${metadata_arg[@]}" "${kotlin_heap[@]}" \
+            :app:assembleDebug
+          ./gradlew --no-daemon --no-configuration-cache "${metadata_arg[@]}" "${kotlin_heap[@]}" \
+            :app:assembleRelease
 
       - name: 验证并整理 APK
         id: apk

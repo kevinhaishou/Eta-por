@@ -27,6 +27,9 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.ui.platform.LocalConfiguration
+import io.github.mangi.eta.ui.app.LocalAppearanceSettings
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -100,10 +103,31 @@ internal fun AgentWorkProcess(
     // 条目插入落在同一帧，不经 LaunchedEffect 晚一帧收起。语音浮层空间有限，自动模式不展开。
     val bodyVisible = manualExpanded ?: (active && !assistantOverlay)
 
-    Column(
+    val appearance = LocalAppearanceSettings.current
+    // 工作过程默认用中性灰底，绝不跟随正文气泡的强调色：过程信息套一块艳色会喧宾夺主。
+    // 只有用户在「编辑气泡样式」里单独给工作过程选了颜色，才换成自定义色。
+    val workBubbleColor = (
+        if (appearance.workProcessColor != 0L) {
+            Color(appearance.workProcessColor)
+        } else {
+            MiuixTheme.colorScheme.surfaceContainerHigh
+        }
+        ).copy(alpha = appearance.workProcessAlpha)
+    Box(
         modifier = modifier
+            // 工作过程是整行的过程记录，不能像正文气泡那样限宽：压成 3/4 会缩在左边、右侧留大片空，看着就是错位。
             .fillMaxWidth()
-            .padding(horizontal = if (assistantOverlay) 12.dp else 16.dp, vertical = 2.dp),
+            // 外边距和正文气泡对齐（原来这层留白在，套气泡时不能丢），否则会贴住屏幕左缘。
+            .padding(
+                horizontal = if (assistantOverlay) 12.dp else 16.dp,
+                vertical = 2.dp,
+            )
+            .clip(RoundedCornerShape(appearance.bubbleCornerRadius.dp))
+            .background(workBubbleColor)
+            .padding(appearance.bubblePadding.dp),
+    ) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
     ) {
         AgentWorkHeader(
             messages = messages,
@@ -140,6 +164,7 @@ internal fun AgentWorkProcess(
                 }
             }
         }
+    }
     }
 }
 

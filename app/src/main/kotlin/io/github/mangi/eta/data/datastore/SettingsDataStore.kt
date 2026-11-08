@@ -16,6 +16,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import io.github.mangi.eta.data.model.AppearanceAccentColor
 import io.github.mangi.eta.data.model.AppearancePaletteStyle
 import io.github.mangi.eta.data.model.AppearanceSettings
+import io.github.mangi.eta.data.model.WallpaperScaleMode
 import io.github.mangi.eta.data.model.AppearanceThemeMode
 import io.github.mangi.eta.data.model.AppearanceTopBarBlurStyle
 import io.github.mangi.eta.data.model.SpeechSettings
@@ -149,11 +150,31 @@ internal object SettingsDataStore {
     private val APPEARANCE_PURE_BLACK_ENABLED = booleanPreferencesKey("appearance_pure_black_enabled")
     private val APPEARANCE_BLUR_ENABLED = booleanPreferencesKey("appearance_blur_enabled")
     private val APPEARANCE_TOP_BAR_BLUR_STYLE = stringPreferencesKey("appearance_top_bar_blur_style")
+    private val APPEARANCE_TOP_BAR_ALPHA = floatPreferencesKey("appearance_top_bar_alpha")
+    private val APPEARANCE_CONVERSATION_PANE_ALPHA = floatPreferencesKey("appearance_conversation_pane_alpha")
     private val APPEARANCE_SWIPE_DISMISS_ENABLED =
         booleanPreferencesKey("appearance_swipe_dismiss_enabled")
     private val APPEARANCE_PREDICTIVE_BACK_ENABLED =
         booleanPreferencesKey("appearance_predictive_back_enabled")
     private val APPEARANCE_INTERFACE_SCALE = floatPreferencesKey("appearance_interface_scale")
+    private val APPEARANCE_WALLPAPER_ENABLED = booleanPreferencesKey("appearance_wallpaper_enabled")
+    private val APPEARANCE_WALLPAPER_PATH = stringPreferencesKey("appearance_wallpaper_path")
+    private val APPEARANCE_WALLPAPER_DIM = floatPreferencesKey("appearance_wallpaper_dim")
+    private val APPEARANCE_WALLPAPER_BLUR = floatPreferencesKey("appearance_wallpaper_blur")
+    private val APPEARANCE_WALLPAPER_SCALE = stringPreferencesKey("appearance_wallpaper_scale")
+    private val APPEARANCE_AVATAR_ENABLED = booleanPreferencesKey("appearance_avatar_enabled")
+    private val APPEARANCE_AVATAR_MINE_PATH = stringPreferencesKey("appearance_avatar_mine_path")
+    private val APPEARANCE_AVATAR_AI_PATH = stringPreferencesKey("appearance_avatar_ai_path")
+    private val APPEARANCE_AVATAR_MINE_ENABLED = booleanPreferencesKey("appearance_avatar_mine_enabled")
+    private val APPEARANCE_AVATAR_AI_ENABLED = booleanPreferencesKey("appearance_avatar_ai_enabled")
+    private val APPEARANCE_BUBBLE_USER_COLOR = longPreferencesKey("appearance_bubble_user_color")
+    private val APPEARANCE_BUBBLE_AI_COLOR = longPreferencesKey("appearance_bubble_ai_color")
+    private val APPEARANCE_BUBBLE_CORNER = floatPreferencesKey("appearance_bubble_corner")
+    private val APPEARANCE_BUBBLE_PADDING = floatPreferencesKey("appearance_bubble_padding")
+    private val APPEARANCE_BUBBLE_USER_ALPHA = floatPreferencesKey("appearance_bubble_user_alpha")
+    private val APPEARANCE_BUBBLE_AI_ALPHA = floatPreferencesKey("appearance_bubble_ai_alpha")
+    private val APPEARANCE_WORK_PROCESS_COLOR = longPreferencesKey("appearance_work_process_color")
+    private val APPEARANCE_WORK_PROCESS_ALPHA = floatPreferencesKey("appearance_work_process_alpha")
     private const val SELECTED_MODEL_BY_PROVIDER_PREFIX = "selected_model_id_by_provider."
 
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = STORE_NAME)
@@ -489,9 +510,31 @@ internal object SettingsDataStore {
             topBarBlurStyle = AppearanceTopBarBlurStyle.fromPersistedValue(
                 this[APPEARANCE_TOP_BAR_BLUR_STYLE],
             ),
+            topBarAlpha = this[APPEARANCE_TOP_BAR_ALPHA] ?: 0.8f,
+            conversationPaneAlpha = this[APPEARANCE_CONVERSATION_PANE_ALPHA] ?: 0.82f,
             swipeDismissEnabled = this[APPEARANCE_SWIPE_DISMISS_ENABLED] ?: true,
             predictiveBackEnabled = this[APPEARANCE_PREDICTIVE_BACK_ENABLED] ?: true,
             interfaceScale = this[APPEARANCE_INTERFACE_SCALE] ?: 1f,
+            wallpaperEnabled = this[APPEARANCE_WALLPAPER_ENABLED] ?: false,
+            wallpaperPath = this[APPEARANCE_WALLPAPER_PATH].orEmpty(),
+            wallpaperDim = this[APPEARANCE_WALLPAPER_DIM] ?: 0f,
+            wallpaperBlur = this[APPEARANCE_WALLPAPER_BLUR] ?: 0f,
+            wallpaperScaleMode = runCatching {
+                WallpaperScaleMode.valueOf(this[APPEARANCE_WALLPAPER_SCALE].orEmpty())
+            }.getOrDefault(WallpaperScaleMode.CROP),
+            avatarEnabled = this[APPEARANCE_AVATAR_ENABLED] ?: false,
+            avatarMinePath = this[APPEARANCE_AVATAR_MINE_PATH].orEmpty(),
+            avatarAiPath = this[APPEARANCE_AVATAR_AI_PATH].orEmpty(),
+            avatarMineEnabled = this[APPEARANCE_AVATAR_MINE_ENABLED] ?: true,
+            avatarAiEnabled = this[APPEARANCE_AVATAR_AI_ENABLED] ?: true,
+            bubbleUserColor = this[APPEARANCE_BUBBLE_USER_COLOR] ?: 0L,
+            bubbleAiColor = this[APPEARANCE_BUBBLE_AI_COLOR] ?: 0L,
+            bubbleCornerRadius = this[APPEARANCE_BUBBLE_CORNER] ?: 20f,
+            bubblePadding = this[APPEARANCE_BUBBLE_PADDING] ?: 12f,
+            bubbleUserAlpha = this[APPEARANCE_BUBBLE_USER_ALPHA] ?: 1f,
+            bubbleAiAlpha = this[APPEARANCE_BUBBLE_AI_ALPHA] ?: 1f,
+            workProcessColor = this[APPEARANCE_WORK_PROCESS_COLOR] ?: 0L,
+            workProcessAlpha = this[APPEARANCE_WORK_PROCESS_ALPHA] ?: 1f,
         ).normalized(),
     )
 
@@ -503,8 +546,28 @@ internal object SettingsDataStore {
         this[APPEARANCE_PURE_BLACK_ENABLED] = settings.pureBlackEnabled
         this[APPEARANCE_BLUR_ENABLED] = settings.blurEnabled
         this[APPEARANCE_TOP_BAR_BLUR_STYLE] = settings.topBarBlurStyle.persistedValue
+        this[APPEARANCE_TOP_BAR_ALPHA] = settings.topBarAlpha
+        this[APPEARANCE_CONVERSATION_PANE_ALPHA] = settings.conversationPaneAlpha
         this[APPEARANCE_SWIPE_DISMISS_ENABLED] = settings.swipeDismissEnabled
         this[APPEARANCE_PREDICTIVE_BACK_ENABLED] = settings.predictiveBackEnabled
         this[APPEARANCE_INTERFACE_SCALE] = settings.interfaceScale
+        this[APPEARANCE_WALLPAPER_ENABLED] = settings.wallpaperEnabled
+        this[APPEARANCE_WALLPAPER_PATH] = settings.wallpaperPath
+        this[APPEARANCE_WALLPAPER_DIM] = settings.wallpaperDim
+        this[APPEARANCE_WALLPAPER_BLUR] = settings.wallpaperBlur
+        this[APPEARANCE_WALLPAPER_SCALE] = settings.wallpaperScaleMode.name
+        this[APPEARANCE_AVATAR_ENABLED] = settings.avatarEnabled
+        this[APPEARANCE_AVATAR_MINE_PATH] = settings.avatarMinePath
+        this[APPEARANCE_AVATAR_AI_PATH] = settings.avatarAiPath
+        this[APPEARANCE_AVATAR_MINE_ENABLED] = settings.avatarMineEnabled
+        this[APPEARANCE_AVATAR_AI_ENABLED] = settings.avatarAiEnabled
+        this[APPEARANCE_BUBBLE_USER_COLOR] = settings.bubbleUserColor
+        this[APPEARANCE_BUBBLE_AI_COLOR] = settings.bubbleAiColor
+        this[APPEARANCE_BUBBLE_CORNER] = settings.bubbleCornerRadius
+        this[APPEARANCE_BUBBLE_PADDING] = settings.bubblePadding
+        this[APPEARANCE_BUBBLE_USER_ALPHA] = settings.bubbleUserAlpha
+        this[APPEARANCE_BUBBLE_AI_ALPHA] = settings.bubbleAiAlpha
+        this[APPEARANCE_WORK_PROCESS_COLOR] = settings.workProcessColor
+        this[APPEARANCE_WORK_PROCESS_ALPHA] = settings.workProcessAlpha
     }
 }
